@@ -1,15 +1,15 @@
+import { Container } from "@mantine/core";
 import type { LoaderFunction } from "@remix-run/node";
-import { json } from "@remix-run/node";
-import { useLoaderData } from "@remix-run/react";
 import { requireUser } from "~/session.server";
+import { useUser } from "~/utils";
 
 export const loader: LoaderFunction = async ({ request }) => {
-  const user = await requireUser(request);
-  return json({ role: user.role });
+  await requireUser(request);
+  return null;
 };
 
 export default function Dashboard() {
-  const { role } = useLoaderData();
+  const user = useUser();
 
-  return <div>{role}</div>;
+  return <Container>{user.role}</Container>;
 }

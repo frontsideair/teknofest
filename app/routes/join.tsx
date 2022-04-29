@@ -11,6 +11,7 @@ import { getUserId, createUserSession } from "~/session.server";
 
 import { createUser, getUserByEmail } from "~/models/user.server";
 import { safeRedirect, validateEmail } from "~/utils";
+import { route } from "routes-gen";
 
 export const loader: LoaderFunction = async ({ request }) => {
   const userId = await getUserId(request);
@@ -29,7 +30,7 @@ export const action: ActionFunction = async ({ request }) => {
   const formData = await request.formData();
   const email = formData.get("email");
   const password = formData.get("password");
-  const redirectTo = safeRedirect(formData.get("redirectTo"), "/");
+  const redirectTo = safeRedirect(formData.get("redirectTo"), "/dashboard");
 
   if (!validateEmail(email)) {
     return json<ActionData>(
@@ -162,7 +163,7 @@ export default function Join() {
               <Link
                 className="text-blue-500 underline"
                 to={{
-                  pathname: "/login",
+                  pathname: route("/login"),
                   search: searchParams.toString(),
                 }}
               >

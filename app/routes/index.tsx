@@ -1,4 +1,6 @@
-import { Form, Link } from "@remix-run/react";
+import { Link } from "@remix-run/react";
+import { route } from "routes-gen";
+import LogoutButton from "~/components/LogoutButton";
 
 import { useOptionalUser } from "~/utils";
 
@@ -29,24 +31,17 @@ export default function Index() {
               </p>
               <div className="mx-auto mt-10 max-w-sm sm:flex sm:max-w-none sm:justify-center">
                 {user ? (
-                  <Form action="/logout" method="post">
-                    <button
-                      type="submit"
-                      className="rounded bg-slate-600 py-2 px-4 text-blue-100 hover:bg-blue-500 active:bg-blue-600"
-                    >
-                      Logout
-                    </button>
-                  </Form>
+                  <LogoutButton />
                 ) : (
                   <div className="space-y-4 sm:mx-auto sm:inline-grid sm:grid-cols-2 sm:gap-5 sm:space-y-0">
                     <Link
-                      to="/join"
+                      to={route("/join")}
                       className="flex items-center justify-center rounded-md border border-transparent bg-white px-4 py-3 text-base font-medium text-yellow-700 shadow-sm hover:bg-yellow-50 sm:px-8"
                     >
                       Sign up
                     </Link>
                     <Link
-                      to="/login"
+                      to={route("/login")}
                       className="flex items-center justify-center rounded-md bg-yellow-500 px-4 py-3 font-medium text-white hover:bg-yellow-600  "
                     >
                       Log In
@@ -54,13 +49,6 @@ export default function Index() {
                   </div>
                 )}
               </div>
-              <a href="https://remix.run">
-                <img
-                  src="https://user-images.githubusercontent.com/1500684/158298926-e45dafff-3544-4b69-96d6-d3bcc33fc76a.svg"
-                  alt="Remix"
-                  className="mx-auto mt-16 w-full max-w-[12rem] md:max-w-[16rem]"
-                />
-              </a>
             </div>
           </div>
         </div>
