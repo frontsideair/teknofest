@@ -63,7 +63,7 @@ function AppHeader() {
             <Button component={Link} to={route("/login")}>
               Login
             </Button>
-            <Button component={Link} to={route("/join")}>
+            <Button component={Link} to={route("/register")}>
               Register
             </Button>
           </Group>

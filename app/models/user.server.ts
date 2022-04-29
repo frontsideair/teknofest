@@ -36,13 +36,12 @@ export async function verifyLogin(
     where: { email },
   });
 
-  if (!userWithPassword || !userWithPassword.passwordHash) {
-    return null;
-  }
+  const isValid = await bcrypt.compare(
+    password,
+    userWithPassword?.passwordHash ?? "prevent-timing-attack"
+  );
 
-  const isValid = await bcrypt.compare(password, userWithPassword.passwordHash);
-
-  if (!isValid) {
+  if (!userWithPassword || !isValid) {
     return null;
   }
 

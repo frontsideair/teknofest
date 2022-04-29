@@ -10,16 +10,19 @@ import * as React from "react";
 import { getUserId, createUserSession } from "~/session.server";
 
 import { createUser, getUserByEmail } from "~/models/user.server";
-import { safeRedirect, validateEmail } from "~/utils";
+import { safeRedirect } from "~/utils";
 import { route } from "routes-gen";
 import {
   Anchor,
   Button,
   Container,
   Group,
+  Radio,
+  RadioGroup,
   Text,
   TextInput,
 } from "@mantine/core";
+import { z } from "zod";
 
 export const loader: LoaderFunction = async ({ request }) => {
   const userId = await getUserId(request);
@@ -27,56 +30,44 @@ export const loader: LoaderFunction = async ({ request }) => {
   return json({});
 };
 
-interface ActionData {
-  errors: {
-    email?: string;
-    password?: string;
-  };
-}
+const formSchema = z.object({
+  email: z.string().email("Email is invalid"),
+  password: z.string().min(8, "Password is too short"),
+  redirectTo: z.string().nullable(),
+  role: z.enum(["advisor", "student"]),
+});
+
+type ActionData = z.inferFlattenedErrors<typeof formSchema>["fieldErrors"];
 
 export const action: ActionFunction = async ({ request }) => {
   const formData = await request.formData();
-  const email = formData.get("email");
-  const password = formData.get("password");
-  const redirectTo = safeRedirect(formData.get("redirectTo"), "/dashboard");
+  const parseResult = formSchema.safeParse(Object.fromEntries(formData));
 
-  if (!validateEmail(email)) {
-    return json<ActionData>(
-      { errors: { email: "Email is invalid" } },
-      { status: 400 }
-    );
+  if (parseResult.success) {
+    const email = parseResult.data.email;
+    const password = parseResult.data.password;
+    const redirectTo = safeRedirect(parseResult.data.redirectTo, "/dashboard");
+
+    const existingUser = await getUserByEmail(email);
+    if (existingUser) {
+      return json<ActionData>(
+        { email: ["A user already exists with this email"] },
+        { status: 400 }
+      );
+    }
+
+    const user = await createUser(email, password);
+
+    return createUserSession({
+      request,
+      userId: user.id,
+      remember: false,
+      redirectTo,
+    });
+  } else {
+    const { fieldErrors } = parseResult.error.flatten();
+    return json<ActionData>(fieldErrors, { status: 400 });
   }
-
-  if (typeof password !== "string") {
-    return json<ActionData>(
-      { errors: { password: "Password is required" } },
-      { status: 400 }
-    );
-  }
-
-  if (password.length < 8) {
-    return json<ActionData>(
-      { errors: { password: "Password is too short" } },
-      { status: 400 }
-    );
-  }
-
-  const existingUser = await getUserByEmail(email);
-  if (existingUser) {
-    return json<ActionData>(
-      { errors: { email: "A user already exists with this email" } },
-      { status: 400 }
-    );
-  }
-
-  const user = await createUser(email, password);
-
-  return createUserSession({
-    request,
-    userId: user.id,
-    remember: false,
-    redirectTo,
-  });
 };
 
 export const meta: MetaFunction = () => {
@@ -88,14 +79,14 @@ export const meta: MetaFunction = () => {
 export default function Join() {
   const [searchParams] = useSearchParams();
   const redirectTo = searchParams.get("redirectTo") ?? undefined;
-  const actionData = useActionData() as ActionData;
+  const actionData = useActionData<ActionData>();
   const emailRef = React.useRef<HTMLInputElement>(null);
   const passwordRef = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
-    if (actionData?.errors?.email) {
+    if (actionData?.email) {
       emailRef.current?.focus();
-    } else if (actionData?.errors?.password) {
+    } else if (actionData?.password) {
       passwordRef.current?.focus();
     }
   }, [actionData]);
@@ -111,7 +102,7 @@ export default function Join() {
           name="email"
           type="email"
           autoComplete="email"
-          error={actionData?.errors?.email}
+          error={actionData?.email}
         />
 
         <TextInput
@@ -120,8 +111,13 @@ export default function Join() {
           name="password"
           type="password"
           autoComplete="new-password"
-          error={actionData?.errors?.password}
+          error={actionData?.password}
         />
+
+        <RadioGroup label="Role" name="role" defaultValue="advisor">
+          <Radio value="advisor" label="Advisor" />
+          <Radio value="student" label="Student" />
+        </RadioGroup>
 
         <input type="hidden" name="redirectTo" value={redirectTo} />
 

@@ -9,7 +9,7 @@ import * as React from "react";
 
 import { createUserSession, getUserId } from "~/session.server";
 import { verifyLogin } from "~/models/user.server";
-import { safeRedirect, validateEmail } from "~/utils";
+import { safeRedirect } from "~/utils";
 import { route } from "routes-gen";
 import {
   Anchor,
@@ -20,6 +20,7 @@ import {
   Text,
   TextInput,
 } from "@mantine/core";
+import { z } from "zod";
 
 export const loader: LoaderFunction = async ({ request }) => {
   const userId = await getUserId(request);
@@ -27,56 +28,44 @@ export const loader: LoaderFunction = async ({ request }) => {
   return json({});
 };
 
-interface ActionData {
-  errors?: {
-    email?: string;
-    password?: string;
-  };
-}
+const formSchema = z.object({
+  email: z.string().email("Email is invalid"),
+  password: z.string().min(8, "Password is too short"),
+  redirectTo: z.string().nullable(),
+  remember: z.literal("on").nullable(),
+});
+
+type ActionData = z.inferFlattenedErrors<typeof formSchema>["fieldErrors"];
 
 export const action: ActionFunction = async ({ request }) => {
   const formData = await request.formData();
-  const email = formData.get("email");
-  const password = formData.get("password");
-  const redirectTo = safeRedirect(formData.get("redirectTo"), "/dashboard");
-  const remember = formData.get("remember");
+  const parseResult = formSchema.safeParse(Object.fromEntries(formData));
 
-  if (!validateEmail(email)) {
-    return json<ActionData>(
-      { errors: { email: "Email is invalid" } },
-      { status: 400 }
-    );
+  if (parseResult.success) {
+    const email = parseResult.data.email;
+    const password = parseResult.data.password;
+    const redirectTo = safeRedirect(parseResult.data.redirectTo, "/dashboard");
+    const remember = parseResult.data.remember === "on";
+
+    const user = await verifyLogin(email, password);
+
+    if (!user) {
+      return json<ActionData>(
+        { email: ["Invalid email or password"] },
+        { status: 400 }
+      );
+    }
+
+    return createUserSession({
+      request,
+      userId: user.id,
+      remember,
+      redirectTo,
+    });
+  } else {
+    const { fieldErrors } = parseResult.error.flatten();
+    return json<ActionData>(fieldErrors, { status: 400 });
   }
-
-  if (typeof password !== "string") {
-    return json<ActionData>(
-      { errors: { password: "Password is required" } },
-      { status: 400 }
-    );
-  }
-
-  if (password.length < 8) {
-    return json<ActionData>(
-      { errors: { password: "Password is too short" } },
-      { status: 400 }
-    );
-  }
-
-  const user = await verifyLogin(email, password);
-
-  if (!user) {
-    return json<ActionData>(
-      { errors: { email: "Invalid email or password" } },
-      { status: 400 }
-    );
-  }
-
-  return createUserSession({
-    request,
-    userId: user.id,
-    remember: remember === "on" ? true : false,
-    redirectTo,
-  });
 };
 
 export const meta: MetaFunction = () => {
@@ -88,14 +77,14 @@ export const meta: MetaFunction = () => {
 export default function LoginPage() {
   const [searchParams] = useSearchParams();
   const redirectTo = searchParams.get("redirectTo") || "/dashboard";
-  const actionData = useActionData() as ActionData;
+  const actionData = useActionData<ActionData>();
   const emailRef = React.useRef<HTMLInputElement>(null);
   const passwordRef = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
-    if (actionData?.errors?.email) {
+    if (actionData?.email) {
       emailRef.current?.focus();
-    } else if (actionData?.errors?.password) {
+    } else if (actionData?.password) {
       passwordRef.current?.focus();
     }
   }, [actionData]);
@@ -111,7 +100,7 @@ export default function LoginPage() {
           name="email"
           type="email"
           autoComplete="email"
-          error={actionData?.errors?.email}
+          error={actionData?.email}
         />
 
         <TextInput
@@ -120,7 +109,7 @@ export default function LoginPage() {
           name="password"
           type="password"
           autoComplete="current-password"
-          error={actionData?.errors?.password}
+          error={actionData?.password}
         />
 
         <input type="hidden" name="redirectTo" value={redirectTo} />
@@ -135,7 +124,7 @@ export default function LoginPage() {
           <Anchor
             component={Link}
             to={{
-              pathname: route("/join"),
+              pathname: route("/register"),
               search: searchParams.toString(),
             }}
           >
