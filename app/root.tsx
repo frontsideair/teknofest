@@ -10,11 +10,14 @@ import {
   ScrollRestoration,
 } from "@remix-run/react";
 import {
+  Anchor,
   AppShell,
+  Badge,
   Button,
   Group,
   Header,
   MantineProvider,
+  Title,
 } from "@mantine/core";
 
 import { getUser } from "./session.server";
@@ -42,20 +45,30 @@ function AppHeader() {
   const maybeUser = useOptionalUser();
   return (
     <Header height="auto">
-      {maybeUser ? (
-        <Group>
-          <LogoutButton />
-        </Group>
-      ) : (
-        <Group>
-          <Button component={Link} to={route("/login")}>
-            Login
-          </Button>
-          <Button component={Link} to={route("/join")}>
-            Register
-          </Button>
-        </Group>
-      )}
+      <Group position="apart" p="md">
+        <Anchor component={Link} to={route("/")}>
+          <Title order={1}>Teknofest</Title>
+        </Anchor>
+        {maybeUser ? (
+          <Group>
+            <Badge>{maybeUser.role}</Badge>
+            {maybeUser.email}
+            <Anchor component={Link} to={route("/dashboard")}>
+              Dashboard
+            </Anchor>
+            <LogoutButton />
+          </Group>
+        ) : (
+          <Group>
+            <Button component={Link} to={route("/login")}>
+              Login
+            </Button>
+            <Button component={Link} to={route("/join")}>
+              Register
+            </Button>
+          </Group>
+        )}
+      </Group>
     </Header>
   );
 }

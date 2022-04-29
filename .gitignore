@@ -9,5 +9,4 @@ node_modules
 /prisma/data.db
 /prisma/data.db-journal
 
-/app/styles/tailwind.css
 /app/routes.d.ts
