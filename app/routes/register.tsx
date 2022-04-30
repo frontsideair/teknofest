@@ -10,7 +10,6 @@ import * as React from "react";
 import { getUserId, createUserSession } from "~/session.server";
 
 import { createUser, getUserByEmail } from "~/models/user.server";
-import { safeRedirect } from "~/utils";
 import { route } from "routes-gen";
 import {
   Anchor,
@@ -33,7 +32,6 @@ export const loader: LoaderFunction = async ({ request }) => {
 const formSchema = z.object({
   email: z.string().email("Email is invalid"),
   password: z.string().min(8, "Password is too short"),
-  redirectTo: z.string(),
   role: z.enum(["advisor", "student"]),
 });
 
@@ -46,7 +44,6 @@ export const action: ActionFunction = async ({ request }) => {
   if (parseResult.success) {
     const email = parseResult.data.email;
     const password = parseResult.data.password;
-    const redirectTo = safeRedirect(parseResult.data.redirectTo, "/dashboard");
 
     const existingUser = await getUserByEmail(email);
     if (existingUser) {
@@ -62,7 +59,6 @@ export const action: ActionFunction = async ({ request }) => {
       request,
       userId: user.id,
       remember: false,
-      redirectTo,
     });
   } else {
     const { fieldErrors } = parseResult.error.flatten();
@@ -77,8 +73,6 @@ export const meta: MetaFunction = () => {
 };
 
 export default function Join() {
-  const [searchParams] = useSearchParams();
-  const redirectTo = searchParams.get("redirectTo") ?? undefined;
   const actionData = useActionData<ActionData>();
   const emailRef = React.useRef<HTMLInputElement>(null);
   const passwordRef = React.useRef<HTMLInputElement>(null);
@@ -119,21 +113,13 @@ export default function Join() {
           <Radio value="student" label="Student" />
         </RadioGroup>
 
-        <input type="hidden" name="redirectTo" value={redirectTo} />
-
         <Group position="right" mt="md">
           <Button type="submit">Create Account</Button>
         </Group>
 
         <Text align="center" mt="md">
           Already have an account?{" "}
-          <Anchor
-            component={Link}
-            to={{
-              pathname: route("/login"),
-              search: searchParams.toString(),
-            }}
-          >
+          <Anchor component={Link} to={route("/login")}>
             Log in
           </Anchor>
         </Text>

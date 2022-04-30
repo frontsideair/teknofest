@@ -1,4 +1,5 @@
 import { createCookieSessionStorage, redirect } from "@remix-run/node";
+import { route, RouteParams } from "routes-gen";
 import invariant from "tiny-invariant";
 
 import type { User } from "~/models/user.server";
@@ -48,7 +49,7 @@ export async function requireUserId(
   const userId = await getUserId(request);
   if (!userId) {
     const searchParams = new URLSearchParams([["redirectTo", redirectTo]]);
-    throw redirect(`/login?${searchParams}`);
+    throw redirect(route("/login") + searchParams);
   }
   return userId;
 }
@@ -66,16 +67,14 @@ export async function createUserSession({
   request,
   userId,
   remember,
-  redirectTo,
 }: {
   request: Request;
   userId: User["id"];
   remember: boolean;
-  redirectTo: string;
 }) {
   const session = await getSession(request);
   session.set(USER_SESSION_KEY, String(userId));
-  return redirect(redirectTo, {
+  return redirect(route("/dashboard"), {
     headers: {
       "Set-Cookie": await sessionStorage.commitSession(session, {
         maxAge: remember
@@ -88,7 +87,7 @@ export async function createUserSession({
 
 export async function logout(request: Request) {
   const session = await getSession(request);
-  return redirect("/", {
+  return redirect(route("/"), {
     headers: {
       "Set-Cookie": await sessionStorage.destroySession(session),
     },

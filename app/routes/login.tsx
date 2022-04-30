@@ -9,7 +9,6 @@ import * as React from "react";
 
 import { createUserSession, getUserId } from "~/session.server";
 import { verifyLogin } from "~/models/user.server";
-import { safeRedirect } from "~/utils";
 import { route } from "routes-gen";
 import {
   Anchor,
@@ -31,7 +30,6 @@ export const loader: LoaderFunction = async ({ request }) => {
 const formSchema = z.object({
   email: z.string().email("Email is invalid"),
   password: z.string().min(8, "Password is too short"),
-  redirectTo: z.string(),
   remember: z.literal("on").optional(),
 });
 
@@ -44,7 +42,6 @@ export const action: ActionFunction = async ({ request }) => {
   if (parseResult.success) {
     const email = parseResult.data.email;
     const password = parseResult.data.password;
-    const redirectTo = safeRedirect(parseResult.data.redirectTo, "/dashboard");
     const remember = parseResult.data.remember === "on";
 
     const user = await verifyLogin(email, password);
@@ -60,7 +57,6 @@ export const action: ActionFunction = async ({ request }) => {
       request,
       userId: user.id,
       remember,
-      redirectTo,
     });
   } else {
     const { fieldErrors } = parseResult.error.flatten();
@@ -75,8 +71,6 @@ export const meta: MetaFunction = () => {
 };
 
 export default function LoginPage() {
-  const [searchParams] = useSearchParams();
-  const redirectTo = searchParams.get("redirectTo") || "/dashboard";
   const actionData = useActionData<ActionData>();
   const emailRef = React.useRef<HTMLInputElement>(null);
   const passwordRef = React.useRef<HTMLInputElement>(null);
@@ -112,8 +106,6 @@ export default function LoginPage() {
           error={actionData?.password}
         />
 
-        <input type="hidden" name="redirectTo" value={redirectTo} />
-
         <Group position="apart" mt="md">
           <Checkbox label="Remember me" name="remember" />
           <Button type="submit">Log in</Button>
@@ -121,13 +113,7 @@ export default function LoginPage() {
 
         <Text align="center" mt="md">
           Don't have an account?{" "}
-          <Anchor
-            component={Link}
-            to={{
-              pathname: route("/register"),
-              search: searchParams.toString(),
-            }}
-          >
+          <Anchor component={Link} to={route("/register")}>
             Sign up
           </Anchor>
         </Text>
