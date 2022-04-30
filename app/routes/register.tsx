@@ -33,7 +33,7 @@ export const loader: LoaderFunction = async ({ request }) => {
 const formSchema = z.object({
   email: z.string().email("Email is invalid"),
   password: z.string().min(8, "Password is too short"),
-  redirectTo: z.string().nullable(),
+  redirectTo: z.string(),
   role: z.enum(["advisor", "student"]),
 });
 

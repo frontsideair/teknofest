@@ -31,8 +31,8 @@ export const loader: LoaderFunction = async ({ request }) => {
 const formSchema = z.object({
   email: z.string().email("Email is invalid"),
   password: z.string().min(8, "Password is too short"),
-  redirectTo: z.string().nullable(),
-  remember: z.literal("on").nullable(),
+  redirectTo: z.string(),
+  remember: z.literal("on").optional(),
 });
 
 type ActionData = z.inferFlattenedErrors<typeof formSchema>["fieldErrors"];
