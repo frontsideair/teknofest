@@ -1,5 +1,5 @@
 import { createCookieSessionStorage, redirect } from "@remix-run/node";
-import { route, RouteParams } from "routes-gen";
+import { route } from "routes-gen";
 import invariant from "tiny-invariant";
 
 import type { User } from "~/models/user.server";

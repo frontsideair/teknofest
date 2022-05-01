@@ -9,7 +9,7 @@ import { Form, Outlet, useActionData } from "@remix-run/react";
 import React from "react";
 import { route } from "routes-gen";
 import { z } from "zod";
-import { changeEmail, changePassword } from "~/models/user.server";
+import { changePassword } from "~/models/user.server";
 import { requireUser } from "~/session.server";
 import { useUser } from "~/utils";
 
