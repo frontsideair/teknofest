@@ -42,14 +42,10 @@ export async function getUser(request: Request): Promise<null | User> {
   throw await logout(request);
 }
 
-export async function requireUserId(
-  request: Request,
-  redirectTo: string = new URL(request.url).pathname
-): Promise<number> {
+export async function requireUserId(request: Request): Promise<number> {
   const userId = await getUserId(request);
   if (!userId) {
-    const searchParams = new URLSearchParams([["redirectTo", redirectTo]]);
-    throw redirect(route("/login") + searchParams);
+    throw redirect(route("/login"));
   }
   return userId;
 }

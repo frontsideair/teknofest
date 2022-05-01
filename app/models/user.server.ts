@@ -49,3 +49,49 @@ export async function verifyLogin(
 
   return userWithoutPassword;
 }
+
+export async function changeEmail(
+  id: User["id"],
+  newEmail: User["email"],
+  password: string
+) {
+  const user = await prisma.user.findUnique({ where: { id } });
+
+  const isValid = await bcrypt.compare(
+    password,
+    user?.passwordHash ?? "whatever"
+  );
+
+  if (!isValid) {
+    throw new Error("Invalid password");
+  }
+
+  return prisma.user.update({
+    where: { id },
+    data: { email: newEmail },
+  });
+}
+
+export async function changePassword(
+  id: User["id"],
+  oldPassword: string,
+  newPassword: string
+) {
+  const user = await prisma.user.findUnique({ where: { id } });
+
+  const isValid = await bcrypt.compare(
+    oldPassword,
+    user?.passwordHash ?? "whatever"
+  );
+
+  if (!isValid) {
+    throw new Error("Invalid password");
+  }
+
+  const passwordHash = await bcrypt.hash(newPassword, 10);
+
+  return prisma.user.update({
+    where: { id },
+    data: { passwordHash },
+  });
+}

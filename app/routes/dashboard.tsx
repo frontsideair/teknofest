@@ -1,5 +1,5 @@
 import { Container } from "@mantine/core";
-import type { LoaderFunction } from "@remix-run/node";
+import type { LoaderFunction, MetaFunction } from "@remix-run/node";
 import { requireUser } from "~/session.server";
 import { useUser } from "~/utils";
 
@@ -8,8 +8,14 @@ export const loader: LoaderFunction = async ({ request }) => {
   return null;
 };
 
+export const meta: MetaFunction = () => {
+  return {
+    title: "Dashboard",
+  };
+};
+
 export default function Dashboard() {
   const user = useUser();
 
-  return <Container>{user.role}</Container>;
+  return <Container size="sm">{user.role}</Container>;
 }

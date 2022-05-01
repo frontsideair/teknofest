@@ -27,7 +27,7 @@ import LogoutButton from "./components/LogoutButton";
 
 export const meta: MetaFunction = () => ({
   charset: "utf-8",
-  title: "Remix Notes",
+  title: "Teknofest",
   viewport: "width=device-width,initial-scale=1",
 });
 
@@ -52,7 +52,9 @@ function AppHeader() {
         {maybeUser ? (
           <Group>
             <Badge>{maybeUser.role}</Badge>
-            {maybeUser.email}
+            <Anchor component={Link} to={route("/profile")}>
+              {maybeUser.email}
+            </Anchor>
             <Anchor component={Link} to={route("/dashboard")}>
               Dashboard
             </Anchor>
@@ -75,12 +77,12 @@ function AppHeader() {
 
 export default function App() {
   return (
-    <html lang="en" className="h-full">
+    <html lang="en">
       <head>
         <Meta />
         <Links />
       </head>
-      <body className="h-full">
+      <body>
         <MantineProvider withNormalizeCSS withGlobalStyles>
           <AppShell header={<AppHeader />}>
             <Outlet />
