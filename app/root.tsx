@@ -8,6 +8,7 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useCatch,
 } from "@remix-run/react";
 import {
   Anchor,
@@ -24,6 +25,7 @@ import { getUser } from "./session.server";
 import { route } from "routes-gen";
 import { useOptionalUser } from "./utils";
 import LogoutButton from "./components/LogoutButton";
+import { useColorScheme } from "@mantine/hooks";
 
 export const meta: MetaFunction = () => ({
   charset: "utf-8",
@@ -76,6 +78,7 @@ function AppHeader() {
 }
 
 export default function App() {
+  const colorScheme = useColorScheme();
   return (
     <html lang="en">
       <head>
@@ -83,7 +86,11 @@ export default function App() {
         <Links />
       </head>
       <body>
-        <MantineProvider withNormalizeCSS withGlobalStyles>
+        <MantineProvider
+          theme={{ colorScheme }}
+          withNormalizeCSS
+          withGlobalStyles
+        >
           <AppShell header={<AppHeader />}>
             <Outlet />
           </AppShell>
@@ -91,6 +98,42 @@ export default function App() {
         <ScrollRestoration />
         <Scripts />
         <LiveReload />
+      </body>
+    </html>
+  );
+}
+
+export function CatchBoundary() {
+  const caught = useCatch();
+  return (
+    <html>
+      <head>
+        <title>Oops!</title>
+        <Meta />
+        <Links />
+      </head>
+      <body>
+        <h1>
+          {caught.status} {caught.statusText}
+        </h1>
+        <Scripts />
+      </body>
+    </html>
+  );
+}
+
+export function ErrorBoundary({ error }: { error: any }) {
+  console.error(error);
+  return (
+    <html>
+      <head>
+        <title>Oh no!</title>
+        <Meta />
+        <Links />
+      </head>
+      <body>
+        <h1>An error happened!</h1>
+        <Scripts />
       </body>
     </html>
   );
