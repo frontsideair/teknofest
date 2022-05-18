@@ -18,6 +18,7 @@ import {
   Group,
   Text,
   TextInput,
+  Title,
 } from "@mantine/core";
 import { z } from "zod";
 
@@ -85,6 +86,7 @@ export default function LoginPage() {
 
   return (
     <Container size="xs">
+      <Title order={2}>Login</Title>
       <Form method="post">
         <TextInput
           label="Email address"

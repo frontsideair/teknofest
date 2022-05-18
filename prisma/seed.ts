@@ -17,6 +17,7 @@ async function seed() {
     data: {
       email,
       passwordHash: hashedPassword,
+      role: "admin",
     },
   });
 

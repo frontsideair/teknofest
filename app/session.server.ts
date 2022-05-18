@@ -59,6 +59,16 @@ export async function requireUser(request: Request) {
   throw await logout(request);
 }
 
+export async function requireAdvisor(request: Request) {
+  const user = await requireUser(request);
+
+  if (user.role !== "advisor") {
+    throw redirect(route("/"));
+  } else {
+    return user;
+  }
+}
+
 export async function createUserSession({
   request,
   userId,
