@@ -38,7 +38,6 @@ export const action: ActionFunction = async ({ request }) => {
 
       return redirect(route("/team/:teamId", { teamId: String(team.id) }));
     } catch (error) {
-      console.error(error);
       return json<ActionData>(
         { name: ["Name is not unique"] },
         { status: 400 }

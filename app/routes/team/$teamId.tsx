@@ -33,21 +33,23 @@ export const loader: LoaderFunction = async ({ request, params }) => {
 
 export default function TeamPage() {
   const team = useLoaderData<LoaderData>();
+  const inviteLink = `https://teknofest.fly.io/team/join?inviteCode=${team.inviteCode}`;
+
   return (
     <Container size="sm">
       <Title order={2}>Team {team.name}</Title>
       <Title order={3}>Invite team members</Title>
       <Text>
-        You can have 5-15 team members, including you. One of them can be an
-        additional advisor. Use the invite code to{" "}
+        You can have 5-15 team members, including you. One of them can be the
+        co-advisor. Use the invite link to{" "}
         <Anchor
-          href={`mailto:student@example.com?subject=Join ${team.name} in Teknofest&body=Create an account at https://teknofest.fly.io/register and use the invite code ${team.inviteCode} to join the team.`}
+          href={`mailto:student@example.com?subject=Join ${team.name} in Teknofest&body=Create an account at https://teknofest.fly.io/register and use the invite link ${inviteLink} to join the team.`}
         >
           invite members
         </Anchor>{" "}
         to your team.
       </Text>
-      <Prism language="markup">{team.inviteCode}</Prism>
+      <Prism language="markup">{inviteLink}</Prism>
       <Title order={3}>Team members</Title>
       <Stack>
         {team.members.length ? (
