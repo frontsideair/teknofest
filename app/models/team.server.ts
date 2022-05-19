@@ -1,9 +1,18 @@
-import type { Team } from "@prisma/client";
+import type { Team, User } from "@prisma/client";
 import { prisma } from "~/db.server";
 import { getCurrentContest } from "./contest.server";
 
-export async function getTeam(id: Team["id"]) {
-  return prisma.team.findUnique({ where: { id } });
+export async function getTeam(advisorId: User["id"], id: Team["id"]) {
+  const maybeTeam = await prisma.team.findUnique({
+    where: { id },
+    include: { members: { include: { user: true } } },
+  });
+
+  if (maybeTeam?.advisorId === advisorId) {
+    return maybeTeam;
+  } else {
+    return null;
+  }
 }
 
 export async function createTeam(

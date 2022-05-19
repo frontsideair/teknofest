@@ -1,4 +1,8 @@
-import { createCookieSessionStorage, redirect } from "@remix-run/node";
+import {
+  createCookieSessionStorage,
+  redirect,
+  Response,
+} from "@remix-run/node";
 import { route } from "routes-gen";
 import invariant from "tiny-invariant";
 
@@ -63,7 +67,7 @@ export async function requireAdvisor(request: Request) {
   const user = await requireUser(request);
 
   if (user.role !== "advisor") {
-    throw redirect(route("/"));
+    throw new Response("Unauthorized", { status: 401 });
   } else {
     return user;
   }

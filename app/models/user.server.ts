@@ -1,5 +1,6 @@
 import type { User } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { z } from "zod";
 
 import { prisma } from "~/db.server";
 
@@ -19,12 +20,13 @@ export async function createUser(
   role: User["role"]
 ) {
   const passwordHash = await bcrypt.hash(password, 10);
+  const parsedRole = z.enum(["admin", "advisor", "student"]).parse(role);
 
   return prisma.user.create({
     data: {
       email,
       passwordHash,
-      role,
+      role: parsedRole,
     },
   });
 }

@@ -4,7 +4,7 @@ import type {
   MetaFunction,
 } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
-import { Form, Link, useActionData, useSearchParams } from "@remix-run/react";
+import { Form, Link, useActionData } from "@remix-run/react";
 import * as React from "react";
 
 import { getUserId, createUserSession } from "~/session.server";
@@ -34,7 +34,7 @@ export const loader: LoaderFunction = async ({ request }) => {
 const formSchema = z.object({
   email: z.string().email("Email is invalid"),
   password: z.string().min(8, "Password is too short"),
-  // role: z.enum(["advisor", "student"]),
+  role: z.enum(["advisor", "student"]),
 });
 
 type ActionData = z.inferFlattenedErrors<typeof formSchema>["fieldErrors"];
@@ -46,6 +46,7 @@ export const action: ActionFunction = async ({ request }) => {
   if (parseResult.success) {
     const email = parseResult.data.email;
     const password = parseResult.data.password;
+    const role = parseResult.data.role;
 
     const existingUser = await getUserByEmail(email);
     if (existingUser) {
@@ -55,7 +56,7 @@ export const action: ActionFunction = async ({ request }) => {
       );
     }
 
-    const user = await createUser(email, password, "advisor");
+    const user = await createUser(email, password, role);
 
     return createUserSession({
       request,
@@ -75,7 +76,6 @@ export const meta: MetaFunction = () => {
 };
 
 export default function Register() {
-  // const [searchParams] = useSearchParams();
   const actionData = useActionData<ActionData>();
   const emailRef = React.useRef<HTMLInputElement>(null);
   const passwordRef = React.useRef<HTMLInputElement>(null);
@@ -112,10 +112,10 @@ export default function Register() {
           error={actionData?.password}
         />
 
-        {/* <RadioGroup label="Role" name="role" defaultValue="advisor">
+        <RadioGroup label="Role" name="role" defaultValue="advisor">
           <Radio value="advisor" label="Advisor" />
           <Radio value="student" label="Student" />
-        </RadioGroup> */}
+        </RadioGroup>
 
         <Group position="right" mt="md">
           <Button type="submit">Create Account</Button>
