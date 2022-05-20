@@ -20,15 +20,20 @@ import { Prism } from "@mantine/prism";
 import { getTeam, removeFromTeam } from "~/models/team.server";
 import { requireAdvisor } from "~/session.server";
 import { numericString } from "~/utils/zod";
+import { getBaseUrl } from "~/utils/common";
 
-type LoaderData = NonNullable<Awaited<ReturnType<typeof getTeam>>>;
+type LoaderData = {
+  team: NonNullable<Awaited<ReturnType<typeof getTeam>>>;
+  baseUrl: string;
+};
 
 export const loader: LoaderFunction = async ({ request, params }) => {
   const teamId = numericString.parse(params.teamId);
   const user = await requireAdvisor(request);
   const team = await getTeam(user.id, teamId);
+  const baseUrl = getBaseUrl();
   if (team) {
-    return json<LoaderData>(team);
+    return json<LoaderData>({ team, baseUrl });
   } else {
     throw new Response("Not found", { status: 404 });
   }
@@ -48,10 +53,10 @@ export const action: ActionFunction = async ({ request, params }) => {
 };
 
 export default function TeamPage() {
-  const team = useLoaderData<LoaderData>();
+  const { team, baseUrl } = useLoaderData<LoaderData>();
   const transition = useTransition();
 
-  const inviteLink = `https://teknofest.fly.io/team/join?inviteCode=${team.inviteCode}`;
+  const inviteLink = `${baseUrl}/team/join?inviteCode=${team.inviteCode}`;
 
   return (
     <Container size="sm">
@@ -61,7 +66,7 @@ export default function TeamPage() {
         You can have 5-15 team members, including you. One of them can be the
         co-advisor. Use the invite link to{" "}
         <Anchor
-          href={`mailto:student@example.com?subject=Join ${team.name} in Teknofest&body=Create an account at https://teknofest.fly.io/register and use the invite link ${inviteLink} to join the team.`}
+          href={`mailto:student@example.com?subject=Join ${team.name} in Teknofest&body=Use the invite link ${inviteLink} to join the team.`}
         >
           invite members
         </Anchor>{" "}
