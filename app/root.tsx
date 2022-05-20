@@ -23,7 +23,7 @@ import {
 
 import { getUser } from "./session.server";
 import { route } from "routes-gen";
-import { useOptionalUser } from "./utils";
+import { useOptionalUser } from "./utils/hooks";
 import LogoutButton from "./components/LogoutButton";
 import { useColorScheme } from "@mantine/hooks";
 

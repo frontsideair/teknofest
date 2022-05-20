@@ -11,7 +11,7 @@ import { route } from "routes-gen";
 import { z } from "zod";
 import { changeEmail } from "~/models/user.server";
 import { requireUser } from "~/session.server";
-import { useUser } from "~/utils";
+import { useUser } from "~/utils/hooks";
 
 export const loader: LoaderFunction = async ({ request }) => {
   await requireUser(request);

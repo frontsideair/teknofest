@@ -1,5 +1,5 @@
 import type { User } from "@prisma/client";
-import partition from "utils/partition";
+import { partition } from "~/utils/common";
 import { prisma } from "~/db.server";
 
 export async function getCurrentContest() {

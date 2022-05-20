@@ -1,15 +1,11 @@
-import { validateEmail } from "./utils";
+import { partition } from "./utils/common";
 
-test("validateEmail returns false for non-emails", () => {
-  expect(validateEmail(undefined)).toBe(false);
-  expect(validateEmail(null)).toBe(false);
-  expect(validateEmail("")).toBe(false);
-  expect(validateEmail("not-an-email")).toBe(false);
-  expect(validateEmail("n@")).toBe(false);
-  expect(validateEmail("hello@")).toBe(false);
-  expect(validateEmail("@hello")).toBe(false);
-});
+test("partition splits a list", () => {
+  const list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+  const even = (a: number) => a % 2 === 0;
 
-test("validateEmail returns true for emails", () => {
-  expect(validateEmail("kody@example.com")).toBe(true);
+  expect(partition(list, even)).toEqual([
+    list.filter(even),
+    list.filter((a) => !even(a)),
+  ]);
 });

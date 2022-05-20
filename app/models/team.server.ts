@@ -56,6 +56,12 @@ export async function joinTeam(user: User, team: TeamWithMembers) {
   });
 }
 
+export async function removeFromTeam(userId: User["id"], teamId: Team["id"]) {
+  return await prisma.teamMember.delete({
+    where: { teamId_userId: { teamId, userId } },
+  });
+}
+
 export async function createTeam(
   name: Team["name"],
   advisorId: Team["advisorId"]

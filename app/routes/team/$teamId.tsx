@@ -1,22 +1,25 @@
 import {
   Anchor,
   Badge,
-  Card,
   Container,
+  Group,
+  LoadingOverlay,
+  Menu,
   Stack,
   Text,
   Title,
+  UnstyledButton,
 } from "@mantine/core";
-import type { LoaderFunction } from "@remix-run/node";
+import type { ActionFunction, LoaderFunction } from "@remix-run/node";
+import { redirect } from "@remix-run/node";
 import { Response } from "@remix-run/node";
 import { json } from "@remix-run/node";
-import { useLoaderData } from "@remix-run/react";
-import { z } from "zod";
-import { getTeam } from "~/models/team.server";
+import { Form, useLoaderData, useTransition } from "@remix-run/react";
+import { route } from "routes-gen";
 import { Prism } from "@mantine/prism";
+import { getTeam, removeFromTeam } from "~/models/team.server";
 import { requireAdvisor } from "~/session.server";
-
-const numericString = z.string().regex(/^\d+$/).transform(Number);
+import { numericString } from "~/utils/zod";
 
 type LoaderData = NonNullable<Awaited<ReturnType<typeof getTeam>>>;
 
@@ -31,8 +34,23 @@ export const loader: LoaderFunction = async ({ request, params }) => {
   }
 };
 
+export const action: ActionFunction = async ({ request, params }) => {
+  if (request.method === "DELETE") {
+    await requireAdvisor(request);
+    const formData = await request.formData();
+    const teamId = numericString.parse(params.teamId);
+    const userId = numericString.parse(formData.get("userId"));
+    await removeFromTeam(userId, teamId);
+    return redirect(route("/team/:teamId", { teamId: String(teamId) }));
+  } else {
+    throw new Response("Method not allowed", { status: 405 });
+  }
+};
+
 export default function TeamPage() {
   const team = useLoaderData<LoaderData>();
+  const transition = useTransition();
+
   const inviteLink = `https://teknofest.fly.io/team/join?inviteCode=${team.inviteCode}`;
 
   return (
@@ -54,11 +72,30 @@ export default function TeamPage() {
       <Stack>
         {team.members.length ? (
           team.members.map((member) => (
-            <Card key={member.userId}>
+            <Group
+              key={member.userId}
+              position="apart"
+              sx={{ position: "relative" }}
+              p="md"
+            >
+              <LoadingOverlay visible={transition.state !== "idle"} />
               <Text>
                 {member.user.email} <Badge>{member.user.role}</Badge>
               </Text>
-            </Card>
+              <Menu>
+                <Menu.Item>
+                  <Form method="delete">
+                    <UnstyledButton
+                      type="submit"
+                      name="userId"
+                      value={member.userId}
+                    >
+                      Remove from team
+                    </UnstyledButton>
+                  </Form>
+                </Menu.Item>
+              </Menu>
+            </Group>
           ))
         ) : (
           <Text>You have no team members.</Text>

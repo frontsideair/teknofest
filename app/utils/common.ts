@@ -1,7 +1,4 @@
-export default function partition<T>(
-  array: T[],
-  predicate: (item: T) => boolean
-) {
+export function partition<T>(array: T[], predicate: (item: T) => boolean) {
   const matches = [];
   const nonMatches = [];
   for (const item of array) {
