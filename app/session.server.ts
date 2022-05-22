@@ -4,12 +4,14 @@ import {
   Response,
 } from "@remix-run/node";
 import { route } from "routes-gen";
-import invariant from "tiny-invariant";
+import { z } from "zod";
 
 import type { User } from "~/models/user.server";
 import { getUserById } from "~/models/user.server";
 
-invariant(process.env.SESSION_SECRET, "SESSION_SECRET must be set");
+const SESSION_SECRET = z
+  .string({ required_error: "SESSION_SECRET must be set" })
+  .parse(process.env.SESSION_SECRET);
 
 export const sessionStorage = createCookieSessionStorage({
   cookie: {
@@ -18,7 +20,7 @@ export const sessionStorage = createCookieSessionStorage({
     maxAge: 0,
     path: "/",
     sameSite: "lax",
-    secrets: [process.env.SESSION_SECRET],
+    secrets: [SESSION_SECRET],
     secure: process.env.NODE_ENV === "production",
   },
 });
