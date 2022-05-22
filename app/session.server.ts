@@ -30,13 +30,13 @@ export async function getSession(request: Request) {
   return sessionStorage.getSession(cookie);
 }
 
-export async function getUserId(request: Request): Promise<number | undefined> {
+export async function getUserId(request: Request) {
   const session = await getSession(request);
   const userId = Number(session.get(USER_SESSION_KEY)) || undefined;
   return userId;
 }
 
-export async function getUser(request: Request): Promise<null | User> {
+export async function getUser(request: Request) {
   const userId = await getUserId(request);
   if (userId === undefined) return null;
 
@@ -46,16 +46,22 @@ export async function getUser(request: Request): Promise<null | User> {
   throw await logout(request);
 }
 
-export async function requireUserId(request: Request): Promise<number> {
+export async function requireUserId(
+  request: Request,
+  redirectTo: ReturnType<typeof route> = route("/login")
+) {
   const userId = await getUserId(request);
   if (!userId) {
-    throw redirect(route("/login"));
+    throw redirect(redirectTo);
   }
   return userId;
 }
 
-export async function requireUser(request: Request) {
-  const userId = await requireUserId(request);
+export async function requireUser(
+  request: Request,
+  redirectTo: ReturnType<typeof route> = route("/login")
+) {
+  const userId = await requireUserId(request, redirectTo);
 
   const user = await getUserById(userId);
   if (user) return user;

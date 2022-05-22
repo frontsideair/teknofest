@@ -9,6 +9,7 @@ import {
   Scripts,
   ScrollRestoration,
   useCatch,
+  useLoaderData,
 } from "@remix-run/react";
 import {
   Anchor,
@@ -23,7 +24,6 @@ import {
 
 import { getUser } from "./session.server";
 import { route } from "routes-gen";
-import { useOptionalUser } from "./utils/hooks";
 import LogoutButton from "./components/LogoutButton";
 import { useColorScheme } from "@mantine/hooks";
 
@@ -44,18 +44,19 @@ export const loader: LoaderFunction = async ({ request }) => {
 };
 
 function AppHeader() {
-  const maybeUser = useOptionalUser();
+  const { user } = useLoaderData<LoaderData>();
+
   return (
     <Header height="auto">
       <Group position="apart" p="md">
         <Anchor component={Link} to={route("/")}>
           <Title order={1}>Teknofest</Title>
         </Anchor>
-        {maybeUser ? (
+        {user ? (
           <Group>
-            <Badge>{maybeUser.role}</Badge>
+            <Badge>{user.role}</Badge>
             <Anchor component={Link} to={route("/profile")}>
-              {maybeUser.email}
+              {user.email}
             </Anchor>
             <Anchor component={Link} to={route("/dashboard")}>
               Dashboard

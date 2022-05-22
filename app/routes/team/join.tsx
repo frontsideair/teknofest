@@ -26,7 +26,7 @@ type LoaderData = { inviteCode: string; teamName: Team["name"] };
 export const loader: LoaderFunction = async ({ request }) => {
   const url = new URL(request.url);
   const inviteCode = inviteCodeSchema.parse(url.searchParams.get("inviteCode"));
-  const user = await requireUser(request);
+  const user = await requireUser(request, route("/register"));
   const team = await getTeamByInvite(inviteCode);
 
   if (team) {

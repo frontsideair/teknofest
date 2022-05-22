@@ -10,16 +10,14 @@ import React from "react";
 import { route } from "routes-gen";
 import { z } from "zod";
 import { changePassword } from "~/models/user.server";
-import { requireUser } from "~/session.server";
-import { useUser } from "~/utils/hooks";
+import { requireUserId } from "~/session.server";
 
 export const loader: LoaderFunction = async ({ request }) => {
-  await requireUser(request);
+  await requireUserId(request);
   return null;
 };
 
 const formSchema = z.object({
-  id: z.preprocess((a) => parseInt(a as string, 10), z.number().positive()),
   oldPassword: z.string().min(8, "Password is too short"),
   newPassword: z.string().min(8, "Password is too short"),
 });
@@ -29,14 +27,14 @@ type ActionData = z.inferFlattenedErrors<typeof formSchema>["fieldErrors"];
 export const action: ActionFunction = async ({ request }) => {
   const formData = await request.formData();
   const parseResult = formSchema.safeParse(Object.fromEntries(formData));
+  const userId = await requireUserId(request);
 
   if (parseResult.success) {
-    const id = parseResult.data.id;
     const oldPassword = parseResult.data.oldPassword;
     const newPassword = parseResult.data.newPassword;
 
     try {
-      await changePassword(id, oldPassword, newPassword);
+      await changePassword(userId, oldPassword, newPassword);
       return redirect(route("/profile"));
     } catch {
       return json<ActionData>(
@@ -60,7 +58,6 @@ export default function Profile() {
   const actionData = useActionData<ActionData>();
   const oldPasswordRef = React.useRef<HTMLInputElement>(null);
   const newPasswordRef = React.useRef<HTMLInputElement>(null);
-  const { id } = useUser();
 
   React.useEffect(() => {
     if (actionData?.oldPassword) {
@@ -74,8 +71,6 @@ export default function Profile() {
     <Container size="xs">
       <Outlet />
       <Form method="post">
-        <input type="hidden" name="id" value={id} />
-
         <TextInput
           label="Old password"
           description="Enter your existing password"
