@@ -45,7 +45,7 @@ export const action: ActionFunction = async ({ request }) => {
 
   if (team) {
     await joinTeam(user, team);
-    return redirect(route("/team/:teamId", { teamId: String(team.id) })); // TODO: redirect to success page
+    return redirect(route("/dashboard"));
   } else {
     throw new Response("Not found", { status: 404 });
   }

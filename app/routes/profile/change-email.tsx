@@ -1,4 +1,10 @@
-import { Button, Container, Group, TextInput } from "@mantine/core";
+import {
+  Button,
+  Container,
+  Group,
+  PasswordInput,
+  TextInput,
+} from "@mantine/core";
 import type {
   ActionFunction,
   LoaderFunction,
@@ -82,12 +88,12 @@ export default function Profile() {
           error={actionData?.email}
         />
 
-        <TextInput
+        <PasswordInput
           label="Password"
           description="Enter your existing password to confirm"
           ref={passwordRef}
+          required
           name="password"
-          type="password"
           autoComplete="current-password"
           error={actionData?.password}
         />

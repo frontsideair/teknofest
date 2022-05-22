@@ -16,6 +16,7 @@ import {
   Button,
   Container,
   Group,
+  PasswordInput,
   Radio,
   RadioGroup,
   Text,
@@ -103,11 +104,12 @@ export default function Register() {
           error={actionData?.email}
         />
 
-        <TextInput
+        <PasswordInput
           label="Password"
+          description="Must be at least 8 characters"
           ref={passwordRef}
+          required
           name="password"
-          type="password"
           autoComplete="new-password"
           error={actionData?.password}
         />

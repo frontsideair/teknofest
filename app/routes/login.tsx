@@ -16,6 +16,7 @@ import {
   Checkbox,
   Container,
   Group,
+  PasswordInput,
   Text,
   TextInput,
   Title,
@@ -99,11 +100,12 @@ export default function LoginPage() {
           error={actionData?.email}
         />
 
-        <TextInput
+        <PasswordInput
           label="Password"
+          description="Must be at least 8 characters"
           ref={passwordRef}
+          required
           name="password"
-          type="password"
           autoComplete="current-password"
           error={actionData?.password}
         />

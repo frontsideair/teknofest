@@ -30,7 +30,7 @@ export function ensureCanJoinTeam(user: User, team: TeamWithMembers) {
   // user is already member of team
   const isMemberOfTeam = team.members.some(({ userId }) => userId === user.id);
   // team has no open slots
-  const teamIsFull = team.members.length >= 15; // TODO: configurable
+  const teamIsFull = team.members.length >= 15;
   // team has coadvisor slot
   const teamHasCoadvisorSlot = team.members.every(
     ({ user }) => user.role !== "advisor"

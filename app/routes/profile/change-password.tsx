@@ -1,4 +1,4 @@
-import { Button, Container, Group, TextInput } from "@mantine/core";
+import { Button, Container, Group, PasswordInput } from "@mantine/core";
 import type {
   ActionFunction,
   LoaderFunction,
@@ -71,22 +71,22 @@ export default function Profile() {
     <Container size="xs">
       <Outlet />
       <Form method="post">
-        <TextInput
+        <PasswordInput
           label="Old password"
           description="Enter your existing password"
           ref={oldPasswordRef}
+          required
           name="oldPassword"
-          type="password"
           autoComplete="current-password"
           error={actionData?.oldPassword}
         />
 
-        <TextInput
+        <PasswordInput
           label="New password"
           description="Enter your new password"
           ref={newPasswordRef}
+          required
           name="newPassword"
-          type="password"
           autoComplete="new-password"
           error={actionData?.newPassword}
         />

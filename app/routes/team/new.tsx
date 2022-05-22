@@ -1,3 +1,4 @@
+import * as React from "react";
 import type {
   ActionFunction,
   LoaderFunction,
@@ -6,16 +7,15 @@ import type {
 import { redirect } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { Form, useActionData } from "@remix-run/react";
-import * as React from "react";
 
-import { requireAdvisor, requireUserId } from "~/session.server";
+import { requireRole, requireUserId } from "~/session.server";
 import { route } from "routes-gen";
 import { Button, Container, Group, TextInput, Title } from "@mantine/core";
 import { z } from "zod";
 import { createTeam } from "~/models/team.server";
 
 export const loader: LoaderFunction = async ({ request }) => {
-  await requireAdvisor(request);
+  await requireRole(request, "advisor");
   return null;
 };
 
@@ -75,7 +75,6 @@ export default function NewTeam() {
           required
           autoFocus
           name="name"
-          type="text"
           error={actionData?.name}
         />
 

@@ -10,7 +10,11 @@ import {
   Title,
   UnstyledButton,
 } from "@mantine/core";
-import type { ActionFunction, LoaderFunction } from "@remix-run/node";
+import type {
+  ActionFunction,
+  LoaderFunction,
+  MetaFunction,
+} from "@remix-run/node";
 import { redirect } from "@remix-run/node";
 import { Response } from "@remix-run/node";
 import { json } from "@remix-run/node";
@@ -18,7 +22,7 @@ import { Form, useLoaderData, useTransition } from "@remix-run/react";
 import { route } from "routes-gen";
 import { Prism } from "@mantine/prism";
 import { getTeam, removeFromTeam } from "~/models/team.server";
-import { requireAdvisor } from "~/session.server";
+import { requireRole } from "~/session.server";
 import { numericString } from "~/utils/zod";
 import { getBaseUrl } from "~/utils/common";
 
@@ -29,7 +33,7 @@ type LoaderData = {
 
 export const loader: LoaderFunction = async ({ request, params }) => {
   const teamId = numericString.parse(params.teamId);
-  const user = await requireAdvisor(request);
+  const user = await requireRole(request, "advisor");
   const team = await getTeam(user.id, teamId);
   const baseUrl = getBaseUrl();
   if (team) {
@@ -41,7 +45,7 @@ export const loader: LoaderFunction = async ({ request, params }) => {
 
 export const action: ActionFunction = async ({ request, params }) => {
   if (request.method === "DELETE") {
-    await requireAdvisor(request);
+    await requireRole(request, "advisor");
     const formData = await request.formData();
     const teamId = numericString.parse(params.teamId);
     const userId = numericString.parse(formData.get("userId"));
@@ -50,6 +54,12 @@ export const action: ActionFunction = async ({ request, params }) => {
   } else {
     throw new Response("Method not allowed", { status: 405 });
   }
+};
+
+export const meta: MetaFunction = ({ data }) => {
+  return {
+    title: `Team ${data.team.name}`,
+  };
 };
 
 export default function TeamPage() {

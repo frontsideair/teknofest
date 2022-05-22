@@ -1,4 +1,4 @@
-import type { User } from "@prisma/client";
+import type { Contest, User } from "@prisma/client";
 import { partition } from "~/utils/common";
 import { prisma } from "~/db.server";
 
@@ -7,6 +7,28 @@ export async function getCurrentContest() {
   return await prisma.contest.findFirst({
     select: { id: true },
     orderBy: { createdAt: "desc" },
+  });
+}
+
+export async function getContests() {
+  return await prisma.contest.findMany({ orderBy: { createdAt: "desc" } });
+}
+
+export async function getContest(id: Contest["id"]) {
+  return await prisma.contest.findUnique({
+    where: { id },
+  });
+}
+
+export async function createContest(
+  applicationStart: Date,
+  applicationEnd: Date
+) {
+  return await prisma.contest.create({
+    data: {
+      applicationStart,
+      applicationEnd,
+    },
   });
 }
 

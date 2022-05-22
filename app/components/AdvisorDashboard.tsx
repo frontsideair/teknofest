@@ -8,8 +8,8 @@ type Props = {
 };
 
 export default function AdvisorDashboard({ contests }: Props) {
-  const [currentContests, pastContests] = contests;
-  const currentTeam = currentContests[0]?.teams[0];
+  const [[currentContest], pastContests] = contests;
+  const currentTeam = currentContest?.teams[0];
 
   return (
     <Container size="sm">

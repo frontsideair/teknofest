@@ -69,10 +69,10 @@ export async function requireUser(
   throw await logout(request);
 }
 
-export async function requireAdvisor(request: Request) {
+export async function requireRole(request: Request, role: User["role"]) {
   const user = await requireUser(request);
 
-  if (user.role !== "advisor") {
+  if (user.role !== role) {
     throw new Response("Unauthorized", { status: 401 });
   } else {
     return user;
