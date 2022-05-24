@@ -2,10 +2,12 @@ import type { LoaderFunction, MetaFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 import { getAdvisorContests, getContests } from "~/models/contest.server";
+import { getTeams } from "~/models/team.server";
 import { logout, requireUser } from "~/session.server";
 
 import AdvisorDashboard from "~/components/AdvisorDashboard";
 import AdminDashboard from "~/components/AdminDashboard";
+import StudentDashboard from "~/components/StudentDashboard";
 
 type LoaderData =
   | { role: "admin"; contests: Awaited<ReturnType<typeof getContests>> }
@@ -13,7 +15,7 @@ type LoaderData =
       role: "advisor";
       contests: Awaited<ReturnType<typeof getAdvisorContests>>;
     }
-  | { role: "student" };
+  | { role: "student"; teams: Awaited<ReturnType<typeof getTeams>> };
 
 export const loader: LoaderFunction = async ({ request }) => {
   const user = await requireUser(request);
@@ -26,7 +28,7 @@ export const loader: LoaderFunction = async ({ request }) => {
         contests: await getAdvisorContests(user.id),
       });
     case "student":
-      return json({ role: "student" });
+      return json({ role: "student", teams: await getTeams(user.id) });
     default:
       return logout(request);
   }
@@ -47,6 +49,6 @@ export default function Dashboard() {
     case "advisor":
       return <AdvisorDashboard contests={data.contests} />;
     case "student":
-      return null;
+      return <StudentDashboard teams={data.teams} />;
   }
 }

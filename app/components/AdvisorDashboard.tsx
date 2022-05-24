@@ -16,7 +16,7 @@ export default function AdvisorDashboard({ contests }: Props) {
       <Title order={2}>Advisor Dashboard</Title>
       <Title order={3}>Current Team</Title>
       {currentTeam ? (
-        <Card>
+        <Card component="article">
           <Title order={4}>{currentTeam.name}</Title>
 
           <Button

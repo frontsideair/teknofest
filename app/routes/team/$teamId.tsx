@@ -1,6 +1,7 @@
 import {
   Anchor,
   Badge,
+  Box,
   Container,
   Group,
   LoadingOverlay,
@@ -87,30 +88,27 @@ export default function TeamPage() {
       <Stack>
         {team.members.length ? (
           team.members.map((member) => (
-            <Group
-              key={member.userId}
-              position="apart"
-              sx={{ position: "relative" }}
-              p="md"
-            >
-              <LoadingOverlay visible={transition.state !== "idle"} />
-              <Text>
-                {member.user.email} <Badge>{member.user.role}</Badge>
-              </Text>
-              <Menu>
-                <Menu.Item>
-                  <Form method="delete">
-                    <UnstyledButton
-                      type="submit"
-                      name="userId"
-                      value={member.userId}
-                    >
-                      Remove from team
-                    </UnstyledButton>
-                  </Form>
-                </Menu.Item>
-              </Menu>
-            </Group>
+            <Box key={member.userId} component="article">
+              <Group position="apart" sx={{ position: "relative" }} p="md">
+                <LoadingOverlay visible={transition.state !== "idle"} />
+                <Text>
+                  {member.user.email} <Badge>{member.user.role}</Badge>
+                </Text>
+                <Menu>
+                  <Menu.Item>
+                    <Form method="delete">
+                      <UnstyledButton
+                        type="submit"
+                        name="userId"
+                        value={member.userId}
+                      >
+                        Remove from team
+                      </UnstyledButton>
+                    </Form>
+                  </Menu.Item>
+                </Menu>
+              </Group>
+            </Box>
           ))
         ) : (
           <Text>You have no team members.</Text>

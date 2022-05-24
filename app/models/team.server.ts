@@ -15,6 +15,12 @@ export async function getTeam(advisorId: User["id"], id: Team["id"]) {
   }
 }
 
+export async function getTeams(memberId: User["id"]) {
+  return await prisma.team.findMany({
+    where: { members: { some: { userId: memberId } } },
+  });
+}
+
 export async function getTeamByInvite(inviteCode: Team["inviteCode"]) {
   return await prisma.team.findUnique({
     where: { inviteCode },
@@ -43,9 +49,9 @@ export function ensureCanJoinTeam(user: User, team: TeamWithMembers) {
     ((user.role === "advisor" && teamHasCoadvisorSlot) ||
       user.role === "student")
   ) {
-    throw new Response("You are not allowed to join", { status: 403 });
-  } else {
     return null;
+  } else {
+    throw new Response("You are not allowed to join", { status: 403 });
   }
 }
 
