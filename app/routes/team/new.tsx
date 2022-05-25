@@ -67,7 +67,7 @@ export default function NewTeam() {
 
   return (
     <Container size="xs">
-      <Title order={2}>Login</Title>
+      <Title order={2}>Create new team</Title>
       <Form method="post">
         <TextInput
           label="Team name"

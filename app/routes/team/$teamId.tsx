@@ -94,7 +94,7 @@ export default function TeamPage() {
                 <Text>
                   {member.user.email} <Badge>{member.user.role}</Badge>
                 </Text>
-                <Menu>
+                <Menu menuButtonLabel="team member actions">
                   <Menu.Item>
                     <Form method="delete">
                       <UnstyledButton
