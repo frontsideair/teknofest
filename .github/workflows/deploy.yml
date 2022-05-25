@@ -95,10 +95,10 @@ jobs:
         uses: bahmutov/npm-install@v1
 
       - name: Install Playwright
-        run: npx playwright install --with-deps
+        run: npx playwright install chromium --with-deps
 
       - name: 🛠 Setup Database
-        run: npx prisma migrate reset --force
+        run: npm run db:reset
 
       - name: ⚙️ Build
         run: npm run build
