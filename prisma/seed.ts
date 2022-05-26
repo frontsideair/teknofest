@@ -8,7 +8,7 @@ async function seed() {
     // no worries if it doesn't exist yet
   });
 
-  await createUser(email, "teknofestadmin", "admin");
+  await createUser("Admin", email, "teknofestadmin", "admin");
 
   console.log(`Database has been seeded. 🌱`);
 }

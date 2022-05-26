@@ -33,6 +33,7 @@ export const loader: LoaderFunction = async ({ request }) => {
 };
 
 const formSchema = z.object({
+  fullName: z.string().min(1, "Full name is required"),
   email: z.string().email("Email is invalid"),
   password: z.string().min(8, "Password is too short"),
   role: z.enum(["advisor", "student"]),
@@ -45,6 +46,7 @@ export const action: ActionFunction = async ({ request }) => {
   const parseResult = formSchema.safeParse(Object.fromEntries(formData));
 
   if (parseResult.success) {
+    const fullName = parseResult.data.fullName;
     const email = parseResult.data.email;
     const password = parseResult.data.password;
     const role = parseResult.data.role;
@@ -57,7 +59,7 @@ export const action: ActionFunction = async ({ request }) => {
       );
     }
 
-    const user = await createUser(email, password, role);
+    const user = await createUser(fullName, email, password, role);
 
     return createUserSession({
       request,
@@ -78,11 +80,14 @@ export const meta: MetaFunction = () => {
 
 export default function Register() {
   const actionData = useActionData<ActionData>();
+  const fullNameRef = React.useRef<HTMLInputElement>(null);
   const emailRef = React.useRef<HTMLInputElement>(null);
   const passwordRef = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
-    if (actionData?.email) {
+    if (actionData?.fullName) {
+      fullNameRef.current?.focus();
+    } else if (actionData?.email) {
       emailRef.current?.focus();
     } else if (actionData?.password) {
       passwordRef.current?.focus();
@@ -93,6 +98,16 @@ export default function Register() {
     <Container size="xs">
       <Title order={2}>Register</Title>
       <Form method="post">
+        <TextInput
+          label="Full name"
+          ref={fullNameRef}
+          required
+          autoFocus
+          name="fullName"
+          autoComplete="name"
+          error={actionData?.fullName}
+        />
+
         <TextInput
           label="Email address"
           ref={emailRef}

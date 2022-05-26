@@ -4,6 +4,7 @@ import { test as base, expect } from "@playwright/test";
 type Role = "admin" | "advisor" | "student";
 
 type User = {
+  fullName: string;
   email: string;
   password: string;
   role: Role;
@@ -16,16 +17,19 @@ export class TeknofestPage {
   readonly heading: Locator;
   readonly users: Record<Role, User> = {
     admin: {
+      fullName: "Admin",
       email: "admin@teknofest.org",
       password: "teknofestadmin",
       role: "admin",
     },
     advisor: {
+      fullName: "Fatih Altinok",
       email: "fatih@gazi.edu.tr",
       password: "fatihpassword",
       role: "advisor",
     },
     student: {
+      fullName: "John Doe",
       email: "student@school.k12.tr",
       password: "studentpassword",
       role: "student",
@@ -81,6 +85,9 @@ export class TeknofestPage {
   }
 
   async register(user: User) {
+    await this.main
+      .locator("role=textbox[name=/full name/i]")
+      .type(user.fullName);
     await this.main
       .locator("role=textbox[name=/email address/i]")
       .type(user.email);
