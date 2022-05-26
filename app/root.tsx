@@ -26,6 +26,7 @@ import { getUser } from "./session.server";
 import { route } from "routes-gen";
 import LogoutButton from "./components/LogoutButton";
 import { useColorScheme } from "@mantine/hooks";
+import CaughtError from "./components/CaughtError";
 
 export const meta: MetaFunction = () => ({
   charset: "utf-8",
@@ -106,6 +107,7 @@ export default function App() {
 
 export function CatchBoundary() {
   const caught = useCatch();
+  const colorScheme = useColorScheme();
   return (
     <html>
       <head>
@@ -114,9 +116,17 @@ export function CatchBoundary() {
         <Links />
       </head>
       <body>
-        <h1>
-          {caught.status} {caught.statusText}
-        </h1>
+        <MantineProvider
+          theme={{ colorScheme }}
+          withNormalizeCSS
+          withGlobalStyles
+        >
+          <CaughtError
+            label={caught.status}
+            title={caught.statusText}
+            description={caught.data}
+          />
+        </MantineProvider>
         <Scripts />
       </body>
     </html>
@@ -125,6 +135,7 @@ export function CatchBoundary() {
 
 export function ErrorBoundary({ error }: { error: any }) {
   console.error(error);
+  const colorScheme = useColorScheme();
   return (
     <html>
       <head>
@@ -133,7 +144,13 @@ export function ErrorBoundary({ error }: { error: any }) {
         <Links />
       </head>
       <body>
-        <h1>An error happened!</h1>
+        <MantineProvider
+          theme={{ colorScheme }}
+          withNormalizeCSS
+          withGlobalStyles
+        >
+          <CaughtError title={error.message} />
+        </MantineProvider>
         <Scripts />
       </body>
     </html>

@@ -75,7 +75,9 @@ export async function requireRole(request: Request, role: User["role"]) {
   const user = await requireUser(request);
 
   if (user.role !== role) {
-    throw new Response("Unauthorized", { status: 401 });
+    throw new Response(" You are not authorized to see this page", {
+      status: 401,
+    });
   } else {
     return user;
   }

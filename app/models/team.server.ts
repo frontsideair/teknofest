@@ -51,7 +51,7 @@ export function ensureCanJoinTeam(user: User, team: TeamWithMembers) {
   ) {
     return null;
   } else {
-    throw new Response("You are not allowed to join", { status: 403 });
+    throw new Response("You cannot join this team", { status: 403 });
   }
 }
 
