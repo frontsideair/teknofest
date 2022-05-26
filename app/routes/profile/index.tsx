@@ -19,6 +19,9 @@ export default function Profile() {
   return (
     <Container size="sm">
       <Stack>
+        <Anchor component={Link} to={route("/profile/change-details")}>
+          Change details
+        </Anchor>
         <Anchor component={Link} to={route("/profile/change-email")}>
           Change email
         </Anchor>

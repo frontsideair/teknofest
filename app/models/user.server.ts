@@ -104,3 +104,13 @@ export async function changePassword(
     data: { passwordHash },
   });
 }
+
+export async function changeDetails(
+  id: User["id"],
+  fullName: User["fullName"]
+) {
+  return prisma.user.update({
+    where: { id },
+    data: { fullName },
+  });
+}
