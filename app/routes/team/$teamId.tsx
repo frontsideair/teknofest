@@ -1,4 +1,13 @@
-import { Anchor, Container, Stack, Text, Title } from "@mantine/core";
+import {
+  Anchor,
+  Button,
+  Container,
+  Group,
+  Stack,
+  Text,
+  TextInput,
+  Title,
+} from "@mantine/core";
 import type {
   ActionFunction,
   LoaderFunction,
@@ -7,14 +16,20 @@ import type {
 import { redirect } from "@remix-run/node";
 import { Response } from "@remix-run/node";
 import { json } from "@remix-run/node";
-import { useLoaderData } from "@remix-run/react";
+import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { route } from "routes-gen";
 import { Prism } from "@mantine/prism";
-import { getTeam, removeFromTeam } from "~/models/team.server";
+import {
+  getTeam,
+  nameSchema,
+  removeFromTeam,
+  updateTeam,
+} from "~/models/team.server";
 import { requireRole } from "~/session.server";
 import { numericString } from "~/utils/zod";
 import { getBaseUrl } from "~/utils/common";
 import TeamMembers from "~/components/TeamMembers";
+import { z } from "zod";
 
 type LoaderData = {
   team: NonNullable<Awaited<ReturnType<typeof getTeam>>>;
@@ -33,16 +48,37 @@ export const loader: LoaderFunction = async ({ request, params }) => {
   }
 };
 
+const formSchema = z.object({
+  name: nameSchema,
+});
+
+type ActionData = z.inferFlattenedErrors<typeof formSchema>["fieldErrors"];
+
 export const action: ActionFunction = async ({ request, params }) => {
-  if (request.method === "DELETE") {
-    await requireRole(request, "advisor");
-    const formData = await request.formData();
-    const teamId = numericString.parse(params.teamId);
-    const userId = numericString.parse(formData.get("userId"));
-    await removeFromTeam(userId, teamId);
-    return redirect(route("/team/:teamId", { teamId: String(teamId) }));
-  } else {
-    throw new Response("Method not allowed", { status: 405 });
+  const teamId = numericString.parse(params.teamId);
+  const formData = await request.formData();
+  await requireRole(request, "advisor");
+
+  switch (request.method) {
+    case "DELETE": {
+      const userId = numericString.parse(formData.get("userId"));
+      await removeFromTeam(userId, teamId);
+      return redirect(route("/team/:teamId", { teamId: String(teamId) }));
+    }
+    case "POST": {
+      const parseResult = formSchema.safeParse(Object.fromEntries(formData));
+      if (parseResult.success) {
+        const name = parseResult.data.name;
+        await updateTeam(teamId, name);
+        return redirect(route("/team/:teamId", { teamId: String(teamId) }));
+      } else {
+        const { fieldErrors } = parseResult.error.flatten();
+        return json<ActionData>(fieldErrors, { status: 400 });
+      }
+    }
+    default: {
+      throw new Response("Method not allowed", { status: 405 });
+    }
   }
 };
 
@@ -54,6 +90,7 @@ export const meta: MetaFunction = ({ data }) => {
 
 export default function TeamPage() {
   const { team, baseUrl } = useLoaderData<LoaderData>();
+  const actionData = useActionData<ActionData>();
 
   const inviteLink = `${baseUrl}/team/join?inviteCode=${team.inviteCode}`;
 
@@ -73,6 +110,21 @@ export default function TeamPage() {
           to your team.
         </Text>
         <Prism language="markup">{inviteLink}</Prism>
+
+        <Title order={3}>Change team details</Title>
+        <Form method="post">
+          <TextInput
+            label="Team name"
+            required
+            autoFocus
+            name="name"
+            error={actionData?.name}
+            defaultValue={team.name}
+          />
+          <Group position="right" mt="md">
+            <Button type="submit">Create</Button>
+          </Group>
+        </Form>
 
         <Title order={3}>Team members</Title>
         <TeamMembers users={team.members.map(({ user }) => user)} />

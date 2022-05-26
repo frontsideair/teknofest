@@ -81,7 +81,7 @@ export default function Profile() {
           name="fullName"
           autoComplete="name"
           error={actionData?.fullName}
-          defaultValue={actionData?.fullName ?? loaderData.fullName}
+          defaultValue={loaderData.fullName}
         />
 
         <Group position="right" mt="md">

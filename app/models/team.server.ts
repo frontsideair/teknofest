@@ -95,3 +95,10 @@ export async function createTeam(
     throw new Error("No contest found");
   }
 }
+
+export async function updateTeam(id: Team["id"], name: Team["name"]) {
+  return await prisma.team.update({
+    where: { id },
+    data: { name },
+  });
+}
