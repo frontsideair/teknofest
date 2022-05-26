@@ -197,12 +197,13 @@ test.describe("Advisor flow", () => {
     );
   });
 
-  test("should allow advisor to see member", async ({ tf }) => {
+  test("should allow advisor to remove member from team", async ({ tf }) => {
     await tf.login(tf.users.advisor);
     await tf.goto("/team/1");
 
     await tf.main
-      .locator("role=article", { hasText: tf.users.student.email })
+      .locator("role=table[name=/team members/i]")
+      .locator(`role=row[name=/${tf.users.student.email}/i]`)
       .locator("role=button[name=/team member actions/i]")
       .click();
     await tf.pickMenuItem("remove from team");
