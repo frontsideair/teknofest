@@ -1,6 +1,15 @@
 import type { Team, User } from "@prisma/client";
+import { z } from "zod";
 import { prisma } from "~/db.server";
 import { getCurrentContest } from "./contest.server";
+
+export const nameSchema = z
+  .string()
+  .min(1, "Name is too short")
+  .max(10, "Name is too long");
+export const inviteCodeSchema = z
+  .string()
+  .uuid("Invite code not in correct format");
 
 export async function getTeam(advisorId: User["id"], id: Team["id"]) {
   const maybeTeam = await prisma.team.findUnique({

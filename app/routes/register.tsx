@@ -9,7 +9,14 @@ import * as React from "react";
 
 import { getUserId, createUserSession } from "~/session.server";
 
-import { createUser, getUserByEmail } from "~/models/user.server";
+import {
+  createUser,
+  emailSchema,
+  fullNameSchema,
+  getUserByEmail,
+  passwordSchema,
+  roleSchema,
+} from "~/models/user.server";
 import { route } from "routes-gen";
 import {
   Anchor,
@@ -33,10 +40,10 @@ export const loader: LoaderFunction = async ({ request }) => {
 };
 
 const formSchema = z.object({
-  fullName: z.string().min(1, "Full name is required"),
-  email: z.string().email("Email is invalid"),
-  password: z.string().min(8, "Password is too short"),
-  role: z.enum(["advisor", "student"]),
+  fullName: fullNameSchema,
+  email: emailSchema,
+  password: passwordSchema,
+  role: roleSchema,
 });
 
 type ActionData = z.inferFlattenedErrors<typeof formSchema>["fieldErrors"];
@@ -112,7 +119,6 @@ export default function Register() {
           label="Email address"
           ref={emailRef}
           required
-          autoFocus
           name="email"
           type="email"
           autoComplete="email"

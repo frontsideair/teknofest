@@ -12,7 +12,7 @@ import { requireRole, requireUserId } from "~/session.server";
 import { route } from "routes-gen";
 import { Button, Container, Group, TextInput, Title } from "@mantine/core";
 import { z } from "zod";
-import { createTeam } from "~/models/team.server";
+import { createTeam, nameSchema } from "~/models/team.server";
 
 export const loader: LoaderFunction = async ({ request }) => {
   await requireRole(request, "advisor");
@@ -20,7 +20,7 @@ export const loader: LoaderFunction = async ({ request }) => {
 };
 
 const formSchema = z.object({
-  name: z.string().min(0, "Name is too short").max(10, "Name is too long"),
+  name: nameSchema,
 });
 
 type ActionData = z.inferFlattenedErrors<typeof formSchema>["fieldErrors"];

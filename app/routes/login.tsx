@@ -8,7 +8,7 @@ import { Form, Link, useActionData } from "@remix-run/react";
 import * as React from "react";
 
 import { createUserSession, getUserId } from "~/session.server";
-import { verifyLogin } from "~/models/user.server";
+import { emailSchema, passwordSchema, verifyLogin } from "~/models/user.server";
 import { route } from "routes-gen";
 import {
   Anchor,
@@ -30,8 +30,8 @@ export const loader: LoaderFunction = async ({ request }) => {
 };
 
 const formSchema = z.object({
-  email: z.string().email("Email is invalid"),
-  password: z.string().min(8, "Password is too short"),
+  email: emailSchema,
+  password: passwordSchema,
   remember: z.literal("on").optional(),
 });
 

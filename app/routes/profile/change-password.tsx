@@ -9,7 +9,7 @@ import { Form, Outlet, useActionData } from "@remix-run/react";
 import React from "react";
 import { route } from "routes-gen";
 import { z } from "zod";
-import { changePassword } from "~/models/user.server";
+import { changePassword, passwordSchema } from "~/models/user.server";
 import { requireUserId } from "~/session.server";
 
 export const loader: LoaderFunction = async ({ request }) => {
@@ -18,8 +18,8 @@ export const loader: LoaderFunction = async ({ request }) => {
 };
 
 const formSchema = z.object({
-  oldPassword: z.string().min(8, "Password is too short"),
-  newPassword: z.string().min(8, "Password is too short"),
+  oldPassword: passwordSchema,
+  newPassword: passwordSchema,
 });
 
 type ActionData = z.inferFlattenedErrors<typeof formSchema>["fieldErrors"];

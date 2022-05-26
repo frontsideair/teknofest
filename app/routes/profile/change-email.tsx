@@ -15,7 +15,7 @@ import { Form, Outlet, useActionData } from "@remix-run/react";
 import React from "react";
 import { route } from "routes-gen";
 import { z } from "zod";
-import { changeEmail } from "~/models/user.server";
+import { changeEmail, emailSchema, passwordSchema } from "~/models/user.server";
 import { requireUserId } from "~/session.server";
 
 export const loader: LoaderFunction = async ({ request }) => {
@@ -24,8 +24,8 @@ export const loader: LoaderFunction = async ({ request }) => {
 };
 
 const formSchema = z.object({
-  email: z.string().email("Email is invalid"),
-  password: z.string().min(8, "Password is too short"),
+  email: emailSchema,
+  password: passwordSchema,
 });
 
 type ActionData = z.inferFlattenedErrors<typeof formSchema>["fieldErrors"];

@@ -10,6 +10,7 @@ import React from "react";
 import { route } from "routes-gen";
 import { z } from "zod";
 import type { User } from "~/models/user.server";
+import { fullNameSchema } from "~/models/user.server";
 import { changeDetails } from "~/models/user.server";
 import { requireUser, requireUserId } from "~/session.server";
 
@@ -23,7 +24,7 @@ export const loader: LoaderFunction = async ({ request }) => {
 };
 
 const formSchema = z.object({
-  fullName: z.string().min(1, "Full name is required"),
+  fullName: fullNameSchema,
 });
 
 type ActionData = z.inferFlattenedErrors<typeof formSchema>["fieldErrors"];

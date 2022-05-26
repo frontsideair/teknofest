@@ -11,15 +11,13 @@ import { Form, useLoaderData } from "@remix-run/react";
 import { requireUser } from "~/session.server";
 import { route } from "routes-gen";
 import { Button, Container, Text, Title } from "@mantine/core";
-import { z } from "zod";
 import {
   ensureCanJoinTeam,
   getTeamByInvite,
+  inviteCodeSchema,
   joinTeam,
 } from "~/models/team.server";
 import type { Team } from "@prisma/client";
-
-const inviteCodeSchema = z.string().uuid("Name is too short");
 
 type LoaderData = { inviteCode: string; teamName: Team["name"] };
 

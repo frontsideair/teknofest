@@ -6,6 +6,11 @@ import { prisma } from "~/db.server";
 
 export type { User } from "@prisma/client";
 
+export const fullNameSchema = z.string().min(1, "Full name is required");
+export const roleSchema = z.enum(["advisor", "student"]);
+export const emailSchema = z.string().email("Email is invalid");
+export const passwordSchema = z.string().min(8, "Password is too short");
+
 export async function getUserById(id: User["id"]) {
   return prisma.user.findUnique({ where: { id } });
 }
