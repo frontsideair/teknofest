@@ -17,7 +17,6 @@ export const sessionStorage = createCookieSessionStorage({
   cookie: {
     name: "__session",
     httpOnly: true,
-    maxAge: 0,
     path: "/",
     sameSite: "lax",
     secrets: [SESSION_SECRET],
@@ -26,6 +25,7 @@ export const sessionStorage = createCookieSessionStorage({
 });
 
 const USER_SESSION_KEY = "userId";
+const REDIRECT_BACK_KEY = "redirectBack";
 
 export async function getSession(request: Request) {
   const cookie = request.headers.get("Cookie");
@@ -54,7 +54,13 @@ export async function requireUserId(
 ) {
   const userId = await getUserId(request);
   if (!userId) {
-    throw redirect(redirectTo);
+    const session = await sessionStorage.getSession();
+    session.flash(REDIRECT_BACK_KEY, request.url);
+    throw redirect(redirectTo, {
+      headers: {
+        "Set-Cookie": await sessionStorage.commitSession(session),
+      },
+    });
   }
   return userId;
 }
@@ -94,7 +100,8 @@ export async function createUserSession({
 }) {
   const session = await getSession(request);
   session.set(USER_SESSION_KEY, String(userId));
-  return redirect(route("/dashboard"), {
+  const redirectBack: string = session.get(REDIRECT_BACK_KEY);
+  return redirect(redirectBack ?? route("/dashboard"), {
     headers: {
       "Set-Cookie": await sessionStorage.commitSession(session, {
         maxAge: remember
@@ -107,9 +114,10 @@ export async function createUserSession({
 
 export async function logout(request: Request) {
   const session = await getSession(request);
+  session.unset(USER_SESSION_KEY);
   return redirect(route("/"), {
     headers: {
-      "Set-Cookie": await sessionStorage.destroySession(session),
+      "Set-Cookie": await sessionStorage.commitSession(session),
     },
   });
 }
