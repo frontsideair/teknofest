@@ -97,12 +97,6 @@ jobs:
       - name: Install Playwright
         run: npx playwright install chromium --with-deps
 
-      - name: 🛠 Setup Database
-        run: npm run db:reset
-
-      - name: ⚙️ Build
-        run: npm run build
-
       - name: Run tests
         run: npm run test:e2e
 
