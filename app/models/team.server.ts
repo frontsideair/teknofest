@@ -1,4 +1,5 @@
 import type { Team, User } from "@prisma/client";
+import { randomUUID } from "crypto";
 import { z } from "zod";
 import { prisma } from "~/db.server";
 import { getCurrentContest } from "./contest.server";
@@ -74,6 +75,13 @@ export async function joinTeam(user: User, team: TeamWithMembers) {
 export async function removeFromTeam(userId: User["id"], teamId: Team["id"]) {
   return await prisma.teamMember.delete({
     where: { teamId_userId: { teamId, userId } },
+  });
+}
+
+export async function regenerateInviteCode(teamId: Team["id"]) {
+  return await prisma.team.update({
+    where: { id: teamId },
+    data: { inviteCode: randomUUID() },
   });
 }
 

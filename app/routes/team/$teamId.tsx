@@ -22,6 +22,7 @@ import { Prism } from "@mantine/prism";
 import {
   getTeam,
   nameSchema,
+  regenerateInviteCode,
   removeFromTeam,
   updateTeam,
 } from "~/models/team.server";
@@ -76,6 +77,10 @@ export const action: ActionFunction = async ({ request, params }) => {
         return json<ActionData>(fieldErrors, { status: 400 });
       }
     }
+    case "PUT": {
+      await regenerateInviteCode(teamId);
+      return redirect(route("/team/:teamId", { teamId: String(teamId) }));
+    }
     default: {
       throw new Response("Method not allowed", { status: 405 });
     }
@@ -109,12 +114,17 @@ export default function TeamPage() {
           </Anchor>{" "}
           to your team.
         </Text>
+
         <Prism language="markup">{inviteLink}</Prism>
+        <Form method="put">
+          <Button type="submit">Regenerate invite code</Button>
+        </Form>
 
         <Title order={3}>Change team details</Title>
         <Form method="post">
           <TextInput
             label="Team name"
+            description="Maximum 10 characters"
             required
             autoFocus
             name="name"
@@ -122,7 +132,7 @@ export default function TeamPage() {
             defaultValue={team.name}
           />
           <Group position="right" mt="md">
-            <Button type="submit">Create</Button>
+            <Button type="submit">Save</Button>
           </Group>
         </Form>
 

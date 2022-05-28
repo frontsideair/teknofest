@@ -71,6 +71,7 @@ export default function NewTeam() {
       <Form method="post">
         <TextInput
           label="Team name"
+          description="Maximum 10 characters"
           ref={nameRef}
           required
           autoFocus
