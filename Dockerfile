@@ -31,9 +31,6 @@ WORKDIR /myapp
 
 COPY --from=deps /myapp/node_modules /myapp/node_modules
 
-ADD package.json prisma ./
-RUN npm run db:generate
-
 ADD . .
 RUN npm run build
 
