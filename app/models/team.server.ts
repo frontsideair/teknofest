@@ -1,4 +1,4 @@
-import type { Team, User } from "@prisma/client";
+import type { Team, TeamMember, User } from "@prisma/client";
 import { randomUUID } from "crypto";
 import { z } from "zod";
 import { prisma } from "~/db.server";
@@ -11,18 +11,15 @@ export const nameSchema = z
 export const inviteCodeSchema = z
   .string()
   .uuid("Invite code not in correct format");
+export const responsibilitySchema = z.enum(["captain", "pilot", "copilot"]);
 
-export async function getTeam(advisorId: User["id"], id: Team["id"]) {
-  const maybeTeam = await prisma.team.findUnique({
+export type Responsibility = z.infer<typeof responsibilitySchema>;
+
+export async function getTeam(id: Team["id"]) {
+  return await prisma.team.findUnique({
     where: { id },
     include: { members: { include: { user: true } } },
   });
-
-  if (maybeTeam?.advisorId === advisorId) {
-    return maybeTeam;
-  } else {
-    return null;
-  }
 }
 
 export async function getTeams(memberId: User["id"]) {
@@ -61,7 +58,7 @@ export function ensureCanJoinTeam(user: User, team: TeamWithMembers) {
   ) {
     return null;
   } else {
-    throw new Response("You cannot join this team", { status: 403 });
+    throw new Error("You cannot join this team");
   }
 }
 
@@ -76,6 +73,77 @@ export async function removeFromTeam(userId: User["id"], teamId: Team["id"]) {
   return await prisma.teamMember.delete({
     where: { teamId_userId: { teamId, userId } },
   });
+}
+
+function hasPilotingResponsibility(
+  teamMember: TeamMember,
+  pilotingResponsibility: "pilot" | "copilot"
+) {
+  return teamMember.pilotingResponsibility === pilotingResponsibility;
+}
+
+async function assignPilotingResponsibility(
+  team: TeamWithMembers,
+  userId: User["id"],
+  pilotingResponsibility: "pilot" | "copilot"
+) {
+  const old = team.members.find((member) =>
+    hasPilotingResponsibility(member, pilotingResponsibility)
+  );
+  if (old) {
+    await prisma.teamMember.update({
+      where: {
+        teamId_userId: { teamId: team.id, userId: old.userId },
+      },
+      data: { pilotingResponsibility: null },
+    });
+  }
+  return await prisma.teamMember.update({
+    where: { teamId_userId: { teamId: team.id, userId } },
+    data: { pilotingResponsibility },
+  });
+}
+
+export async function assignResponsibility(
+  userId: User["id"],
+  teamId: Team["id"],
+  responsibility: z.infer<typeof responsibilitySchema>
+) {
+  const team = await getTeam(teamId);
+  console.log({ team, teamId, userId });
+  if (team) {
+    switch (responsibility) {
+      case "captain": {
+        if (team.advisorId === userId) {
+          throw new Error("Advisor cannot be captain");
+        }
+        const oldCaptain = team.members.find((member) => member.isCaptain);
+        if (oldCaptain) {
+          await prisma.teamMember.update({
+            where: {
+              teamId_userId: { teamId, userId: oldCaptain.userId },
+            },
+            data: { isCaptain: false },
+          });
+        }
+        return await prisma.teamMember.update({
+          where: { teamId_userId: { teamId, userId } },
+          data: { isCaptain: true },
+        });
+      }
+      case "pilot": {
+        if (team.advisorId === userId) {
+          throw new Error("Advisor cannot be pilot");
+        }
+        return await assignPilotingResponsibility(team, userId, responsibility);
+      }
+      case "copilot": {
+        return await assignPilotingResponsibility(team, userId, responsibility);
+      }
+    }
+  } else {
+    throw new Error("Team does not exist");
+  }
 }
 
 export async function regenerateInviteCode(teamId: Team["id"]) {

@@ -6,47 +6,97 @@ import {
   Menu,
   Table,
   Text,
-  UnstyledButton,
 } from "@mantine/core";
 import { useId } from "@mantine/hooks";
-import type { User } from "@prisma/client";
-import { Form, useTransition } from "@remix-run/react";
+import type { Team, User } from "@prisma/client";
+import { useSubmit, useTransition } from "@remix-run/react";
+import { route } from "routes-gen";
+import type { getTeam, Responsibility } from "~/models/team.server";
 
 type Props = {
-  users: User[];
+  members: NonNullable<Awaited<ReturnType<typeof getTeam>>>["members"];
 };
 
-export default function TeamMembers({ users }: Props) {
+export default function TeamMembers({ members }: Props) {
   const transition = useTransition();
   const id = useId();
+  const submit = useSubmit();
 
-  const rows = users.map((user) => (
-    <tr key={user.id} aria-labelledby={id}>
+  function action(userId: User["id"], teamId: Team["id"]) {
+    return route("/team/:teamId/:userId", {
+      teamId: String(teamId),
+      userId: String(userId),
+    });
+  }
+
+  function actionHandler(action: string, responsibility: Responsibility) {
+    return () => {
+      submit({ responsibility }, { method: "post", action });
+    };
+  }
+
+  const rows = members.map((member) => (
+    <tr key={member.userId} aria-labelledby={id}>
       <td>
         <Group spacing="sm">
           <Text size="sm" weight={500}>
-            {user.fullName}
+            {member.user.fullName}
           </Text>
         </Group>
       </td>
 
-      <td>
-        <Badge>{user.role}</Badge>
-      </td>
       <td id={id}>
-        <Anchor component="a" size="sm" href={`mailto:${user.email}`}>
-          {user.email}
+        <Anchor component="a" size="sm" href={`mailto:${member.user.email}`}>
+          {member.user.email}
         </Anchor>
       </td>
+
+      <td>
+        <Group spacing="xs">
+          <Badge size="xs">{member.user.role}</Badge>
+          {member.isCaptain && <Badge size="xs">Captain</Badge>}
+          {member.pilotingResponsibility && (
+            <Badge size="xs">{member.pilotingResponsibility}</Badge>
+          )}
+        </Group>
+      </td>
+
       <td>
         <Group spacing={0} position="right">
           <Menu menuButtonLabel="team member actions">
-            <Menu.Item>
-              <Form method="delete">
-                <UnstyledButton type="submit" name="userId" value={user.id}>
-                  Remove from team
-                </UnstyledButton>
-              </Form>
+            <Menu.Item
+              onClick={actionHandler(
+                action(member.userId, member.teamId),
+                "captain"
+              )}
+            >
+              Assign captain
+            </Menu.Item>
+            <Menu.Item
+              onClick={actionHandler(
+                action(member.userId, member.teamId),
+                "pilot"
+              )}
+            >
+              Assign pilot
+            </Menu.Item>
+            <Menu.Item
+              onClick={actionHandler(
+                action(member.userId, member.teamId),
+                "copilot"
+              )}
+            >
+              Assign copilot
+            </Menu.Item>
+            <Menu.Item
+              onClick={() =>
+                submit(null, {
+                  method: "delete",
+                  action: action(member.userId, member.teamId),
+                })
+              }
+            >
+              <Text color="red">Remove from team</Text>
             </Menu.Item>
           </Menu>
         </Group>
@@ -54,7 +104,7 @@ export default function TeamMembers({ users }: Props) {
     </tr>
   ));
 
-  if (users.length === 0) {
+  if (members.length === 0) {
     return <Text>No members</Text>;
   } else {
     return (
@@ -67,8 +117,8 @@ export default function TeamMembers({ users }: Props) {
         <thead>
           <tr>
             <th>Member name</th>
-            <th>Role</th>
             <th>Email</th>
+            <th>Roles</th>
             <th />
           </tr>
         </thead>

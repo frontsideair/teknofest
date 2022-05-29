@@ -37,7 +37,7 @@ export class TeknofestPage {
   };
   readonly teamName = "BEST TEAM";
 
-  private userAssertion(user: User) {
+  userAssertion(user: User) {
     switch (user.role) {
       case "admin":
         return /admin dashboard/i;
@@ -100,7 +100,6 @@ export class TeknofestPage {
       )
       .click();
     await this.submit();
-    await expect(this.heading).toHaveText(this.userAssertion(user));
   }
 
   async pickDate(day: number) {
@@ -156,6 +155,7 @@ test.describe("Advisor flow", () => {
     await tf.goto("home");
     await tf.header.locator("role=link[name=/register/i]").click();
     await tf.register(tf.users.advisor);
+    await expect(tf.heading).toHaveText(tf.userAssertion(tf.users.advisor));
   });
 
   test("should allow advisor to login and create team", async ({ tf }) => {
@@ -187,7 +187,6 @@ test.describe("Advisor flow", () => {
     await tf.goto(inviteLink!);
     await tf.register(tf.users.student);
 
-    await tf.goto(inviteLink!);
     await expect(tf.heading).toHaveText(/join team/i);
 
     await tf.main.locator("role=button[name=/join/i]").click();

@@ -56,7 +56,7 @@ type Props = {
   description?: string;
 };
 
-export default function NotFoundTitle({
+export default function CaughtError({
   label = 500,
   title,
   description,

@@ -28,7 +28,11 @@ export const loader: LoaderFunction = async ({ request }) => {
   const team = await getTeamByInvite(inviteCode);
 
   if (team) {
-    ensureCanJoinTeam(user, team);
+    try {
+      ensureCanJoinTeam(user, team);
+    } catch {
+      throw new Response("You cannot join this team", { status: 403 });
+    }
     return json<LoaderData>({ inviteCode, teamName: team.name });
   } else {
     throw new Response("Not found", { status: 404 });

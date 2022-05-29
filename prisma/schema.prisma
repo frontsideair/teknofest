@@ -45,12 +45,14 @@ model Team {
 }
 
 model TeamMember {
-  team      Team     @relation(fields: [teamId], references: [id])
-  teamId    Int
-  user      User     @relation(fields: [userId], references: [id])
-  userId    Int
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  team                   Team     @relation(fields: [teamId], references: [id])
+  teamId                 Int
+  user                   User     @relation(fields: [userId], references: [id])
+  userId                 Int
+  isCaptain              Boolean  @default(false)
+  pilotingResponsibility String? // "pilot", "copilot", null
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
 
   @@id([teamId, userId])
 }

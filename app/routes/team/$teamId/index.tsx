@@ -23,7 +23,6 @@ import {
   getTeam,
   nameSchema,
   regenerateInviteCode,
-  removeFromTeam,
   updateTeam,
 } from "~/models/team.server";
 import { requireRole } from "~/session.server";
@@ -39,8 +38,8 @@ type LoaderData = {
 
 export const loader: LoaderFunction = async ({ request, params }) => {
   const teamId = numericString.parse(params.teamId);
-  const user = await requireRole(request, "advisor");
-  const team = await getTeam(user.id, teamId);
+  await requireRole(request, "advisor");
+  const team = await getTeam(teamId);
   const baseUrl = getBaseUrl();
   if (team) {
     return json<LoaderData>({ team, baseUrl });
@@ -61,11 +60,6 @@ export const action: ActionFunction = async ({ request, params }) => {
   await requireRole(request, "advisor");
 
   switch (request.method) {
-    case "DELETE": {
-      const userId = numericString.parse(formData.get("userId"));
-      await removeFromTeam(userId, teamId);
-      return redirect(route("/team/:teamId", { teamId: String(teamId) }));
-    }
     case "POST": {
       const parseResult = formSchema.safeParse(Object.fromEntries(formData));
       if (parseResult.success) {
@@ -126,7 +120,6 @@ export default function TeamPage() {
             label="Team name"
             description="Maximum 10 characters"
             required
-            autoFocus
             name="name"
             error={actionData?.name}
             defaultValue={team.name}
@@ -137,7 +130,7 @@ export default function TeamPage() {
         </Form>
 
         <Title order={3}>Team members</Title>
-        <TeamMembers users={team.members.map(({ user }) => user)} />
+        <TeamMembers members={team.members} />
       </Stack>
     </Container>
   );
