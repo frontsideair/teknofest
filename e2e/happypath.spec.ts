@@ -179,6 +179,8 @@ test.describe("Advisor flow", () => {
       .click();
     await expect(tf.heading).toContainText(tf.teamName);
 
+    await tf.main.locator("role=link[name=/members/i]").click();
+
     inviteLink = await tf.main.locator("text=/inviteCode/").textContent();
   });
 
@@ -198,7 +200,7 @@ test.describe("Advisor flow", () => {
 
   test("should allow advisor to remove member from team", async ({ tf }) => {
     await tf.login(tf.users.advisor);
-    await tf.goto("/team/1");
+    await tf.goto("/team/1/members");
 
     await tf.main
       .locator("role=table[name=/team members/i]")

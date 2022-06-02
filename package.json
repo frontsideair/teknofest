@@ -25,7 +25,7 @@
     "playwright": "env-cmd -f .env.e2e playwright test",
     "test": "vitest",
     "typecheck": "tsc -b",
-    "validate": "cross-env CI=true run-p test lint typecheck test:e2e",
+    "validate": "cross-env CI=true run-p test lint typecheck playwright",
     "routes-gen": "routes-gen -d @routes-gen/remix"
   },
   "prettier": {},
