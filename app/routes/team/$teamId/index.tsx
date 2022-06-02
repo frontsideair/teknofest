@@ -19,17 +19,13 @@ import { json } from "@remix-run/node";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { route } from "routes-gen";
 import { Prism } from "@mantine/prism";
-import {
-  getTeam,
-  nameSchema,
-  regenerateInviteCode,
-  updateTeam,
-} from "~/models/team.server";
+import { z } from "zod";
+import { getTeam, nameSchema, updateTeam } from "~/models/team.server";
 import { requireRole } from "~/session.server";
 import { numericString } from "~/utils/zod";
 import { getBaseUrl } from "~/utils/common";
 import TeamMembers from "~/components/TeamMembers";
-import { z } from "zod";
+import ProgressReportUploader from "~/components/ProgressReportUploader";
 
 type LoaderData = {
   team: NonNullable<Awaited<ReturnType<typeof getTeam>>>;
@@ -59,25 +55,14 @@ export const action: ActionFunction = async ({ request, params }) => {
   const formData = await request.formData();
   await requireRole(request, "advisor");
 
-  switch (request.method) {
-    case "POST": {
-      const parseResult = formSchema.safeParse(Object.fromEntries(formData));
-      if (parseResult.success) {
-        const name = parseResult.data.name;
-        await updateTeam(teamId, name);
-        return redirect(route("/team/:teamId", { teamId: String(teamId) }));
-      } else {
-        const { fieldErrors } = parseResult.error.flatten();
-        return json<ActionData>(fieldErrors, { status: 400 });
-      }
-    }
-    case "PUT": {
-      await regenerateInviteCode(teamId);
-      return redirect(route("/team/:teamId", { teamId: String(teamId) }));
-    }
-    default: {
-      throw new Response("Method not allowed", { status: 405 });
-    }
+  const parseResult = formSchema.safeParse(Object.fromEntries(formData));
+  if (parseResult.success) {
+    const name = parseResult.data.name;
+    await updateTeam(teamId, name);
+    return redirect(route("/team/:teamId", { teamId: String(teamId) }));
+  } else {
+    const { fieldErrors } = parseResult.error.flatten();
+    return json<ActionData>(fieldErrors, { status: 400 });
   }
 };
 
@@ -97,6 +82,23 @@ export default function TeamPage() {
     <Container size="sm">
       <Title order={2}>Team {team.name}</Title>
       <Stack spacing="md">
+        <Title order={3}>Upload progress report</Title>
+        <Form
+          method="post"
+          encType="multipart/form-data"
+          action="progressReport"
+        >
+          <ProgressReportUploader />
+          <Group mt="sm" position="apart">
+            {team.progressReportPath ? (
+              <Text>Uploaded report: {team.progressReportPath}</Text>
+            ) : (
+              <Text>No report uploaded yet</Text>
+            )}
+            <Button type="submit">Upload</Button>
+          </Group>
+        </Form>
+
         <Title order={3}>Invite team members</Title>
         <Text>
           You can have 5-15 team members, including you. One of them can be the
@@ -110,7 +112,7 @@ export default function TeamPage() {
         </Text>
 
         <Prism language="markup">{inviteLink}</Prism>
-        <Form method="put">
+        <Form method="put" action="regenerateInviteCode">
           <Button type="submit">Regenerate invite code</Button>
         </Form>
 

@@ -21,11 +21,11 @@ import {
   MantineProvider,
   Title,
 } from "@mantine/core";
+import { useColorScheme } from "@mantine/hooks";
+import { route } from "routes-gen";
 
 import { getUser } from "./session.server";
-import { route } from "routes-gen";
 import LogoutButton from "./components/LogoutButton";
-import { useColorScheme } from "@mantine/hooks";
 import CaughtError from "./components/CaughtError";
 
 export const meta: MetaFunction = () => ({

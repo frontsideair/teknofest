@@ -3,6 +3,7 @@ node_modules
 /build
 /public/build
 .env
+/uploads
 
 /prisma/data.db
 /prisma/data.db-journal

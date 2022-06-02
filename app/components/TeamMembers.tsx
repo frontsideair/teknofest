@@ -9,16 +9,17 @@ import {
 } from "@mantine/core";
 import { useId } from "@mantine/hooks";
 import type { Team, User } from "@prisma/client";
-import { useSubmit, useTransition } from "@remix-run/react";
+import { useSubmit } from "@remix-run/react";
 import { route } from "routes-gen";
 import type { getTeam, Responsibility } from "~/models/team.server";
+import { useLoading } from "~/utils/hooks";
 
 type Props = {
   members: NonNullable<Awaited<ReturnType<typeof getTeam>>>["members"];
 };
 
 export default function TeamMembers({ members }: Props) {
-  const transition = useTransition();
+  const loading = useLoading(/^\/team\/\d+\/\d+$/);
   const id = useId();
   const submit = useSubmit();
 
@@ -113,7 +114,7 @@ export default function TeamMembers({ members }: Props) {
         sx={{ position: "relative" }}
         aria-label="Team members"
       >
-        <LoadingOverlay visible={transition.state !== "idle"} />
+        <LoadingOverlay visible={loading} />
         <thead>
           <tr>
             <th>Member name</th>

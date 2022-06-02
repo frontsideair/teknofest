@@ -153,6 +153,16 @@ export async function regenerateInviteCode(teamId: Team["id"]) {
   });
 }
 
+export async function setProgressReportPath(
+  teamId: Team["id"],
+  progressReportPath: string
+) {
+  await prisma.team.update({
+    where: { id: teamId },
+    data: { progressReportPath },
+  });
+}
+
 export async function createTeam(
   name: Team["name"],
   advisorId: Team["advisorId"]

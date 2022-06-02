@@ -37,8 +37,11 @@ model Team {
   advisorId  Int
   inviteCode String       @unique @default(uuid())
   members    TeamMember[]
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
+
+  progressReportPath String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([name, contestId])
   @@unique([advisorId, contestId])
