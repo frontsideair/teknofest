@@ -19,20 +19,27 @@ type Props = {
 };
 
 export default function TeamMembers({ members }: Props) {
-  const loading = useLoading(/^\/team\/\d+\/\d+$/);
+  const loading = useLoading((transiton) => {
+    const method = transiton.submission?.method;
+    return method === "POST" || method === "DELETE";
+  });
   const id = useId();
   const submit = useSubmit();
 
-  function action(userId: User["id"], teamId: Team["id"]) {
-    return route("/team/:teamId/:userId", {
-      teamId: String(teamId),
-      userId: String(userId),
-    });
+  function action(teamId: Team["id"]) {
+    return route("/team/:teamId/members", { teamId: String(teamId) });
   }
 
-  function actionHandler(action: string, responsibility: Responsibility) {
+  function actionHandler(
+    action: string,
+    userId: User["id"],
+    responsibility: Responsibility
+  ) {
     return () => {
-      submit({ responsibility }, { method: "post", action });
+      submit(
+        { responsibility, userId: String(userId) },
+        { method: "post", action }
+      );
     };
   }
 
@@ -67,7 +74,8 @@ export default function TeamMembers({ members }: Props) {
           <Menu menuButtonLabel="team member actions">
             <Menu.Item
               onClick={actionHandler(
-                action(member.userId, member.teamId),
+                action(member.teamId),
+                member.userId,
                 "captain"
               )}
             >
@@ -75,7 +83,8 @@ export default function TeamMembers({ members }: Props) {
             </Menu.Item>
             <Menu.Item
               onClick={actionHandler(
-                action(member.userId, member.teamId),
+                action(member.teamId),
+                member.userId,
                 "pilot"
               )}
             >
@@ -83,7 +92,8 @@ export default function TeamMembers({ members }: Props) {
             </Menu.Item>
             <Menu.Item
               onClick={actionHandler(
-                action(member.userId, member.teamId),
+                action(member.teamId),
+                member.userId,
                 "copilot"
               )}
             >
@@ -91,13 +101,17 @@ export default function TeamMembers({ members }: Props) {
             </Menu.Item>
             <Menu.Item
               onClick={() =>
-                submit(null, {
-                  method: "delete",
-                  action: action(member.userId, member.teamId),
-                })
+                submit(
+                  { userId: String(member.userId) },
+                  {
+                    method: "delete",
+                    action: action(member.teamId),
+                  }
+                )
               }
+              color="red"
             >
-              <Text color="red">Remove from team</Text>
+              Remove from team
             </Menu.Item>
           </Menu>
         </Group>

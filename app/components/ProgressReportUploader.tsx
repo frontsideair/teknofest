@@ -60,7 +60,7 @@ export const dropzoneChildren = (
 
 export default function ProgressReportUploader() {
   const theme = useMantineTheme();
-  const loading = useLoading(/^\/team\/\d+\/progressReport$/);
+  const loading = useLoading();
   const dropzoneRef = useRef<HTMLDivElement>(null);
   const [selectStatus, setSelectStatus] = useState<DropzoneStatus>({
     accepted: false,
