@@ -25,6 +25,7 @@ export const action: ActionFunction = async ({ request }) => {
     );
     return redirect(route("/contest/:contestId", { contestId: String(id) }));
   } else {
+    console.error(parseResult.error);
     return json<ActionData>(
       { applicationDateRange: ["Date range is required"] },
       { status: 400 }

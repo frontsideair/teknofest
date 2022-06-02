@@ -98,7 +98,7 @@ jobs:
         run: npx playwright install chromium --with-deps
 
       - name: Run tests
-        run: npm run test:e2e
+        run: npm run playwright
 
       - name: Upload test results
         if: always()

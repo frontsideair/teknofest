@@ -146,7 +146,7 @@ test.describe("Admin flow", () => {
     await tf.pickDate(1);
     await tf.pickDate(15);
     await tf.main.locator("role=button[name=/create/i]").click();
-    await expect(tf.heading).toHaveText(/contest/i);
+    await expect(tf.heading).toHaveText(/^contest/i);
   });
 });
 

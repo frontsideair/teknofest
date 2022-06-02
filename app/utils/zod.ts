@@ -8,7 +8,7 @@ dayjs.extend(utc);
 
 export const numericString = z.string().regex(/^\d+$/).transform(Number);
 
-const dateFormat = "MMM D, YYYY";
+const dateFormat = "MMMM D, YYYY";
 
 export const dateString = z.preprocess((arg) => {
   if (typeof arg === "string") {

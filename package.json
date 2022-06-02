@@ -20,9 +20,10 @@
     "db:migrate:dev": "prisma migrate dev",
     "db:repl": "prisma-repl",
     "start": "remix-serve build",
+    "cleanup": "run-p db:reset build",
+    "preplaywright": "env-cmd -f .env.e2e cleanup",
     "playwright": "playwright test",
     "test": "vitest",
-    "test:e2e": "env-cmd -f .env.e2e run-s db:reset build playwright",
     "typecheck": "tsc -b",
     "validate": "cross-env CI=true run-p test lint typecheck test:e2e",
     "routes-gen": "routes-gen -d @routes-gen/remix"
