@@ -65,35 +65,35 @@ export default function NewContest() {
           required
           autoFocus
           name="applicationDateRange"
-          error={actionData?.applicationDateRange}
+          error={actionData?.applicationDateRange?.[0]}
         />
 
         <DateRangePicker
           label="Letters of commitment and consent upload"
           required
           name="letterUploadDateRange"
-          error={actionData?.letterUploadDateRange}
+          error={actionData?.letterUploadDateRange?.[0]}
         />
 
         <DateRangePicker
           label="Technical design report"
           required
           name="designReportDateRange"
-          error={actionData?.designReportDateRange}
+          error={actionData?.designReportDateRange?.[0]}
         />
 
         <DateRangePicker
           label="Technical controls"
           required
           name="techControlsDateRange"
-          error={actionData?.techControlsDateRange}
+          error={actionData?.techControlsDateRange?.[0]}
         />
 
         <DateRangePicker
           label="Final races"
           required
           name="finalRaceDateRange"
-          error={actionData?.finalRaceDateRange}
+          error={actionData?.finalRaceDateRange?.[0]}
         />
 
         <Group position="right" mt="md">
