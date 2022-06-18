@@ -1,18 +1,11 @@
 import { z } from "zod";
-import dayjs from "dayjs";
-import customParseFormat from "dayjs/plugin/customParseFormat";
-import utc from "dayjs/plugin/utc";
-
-dayjs.extend(customParseFormat);
-dayjs.extend(utc);
+import { parse } from "./date";
 
 export const numericString = z.string().regex(/^\d+$/).transform(Number);
 
-const dateFormat = "MMMM D, YYYY";
-
 export const dateString = z.preprocess((arg) => {
   if (typeof arg === "string") {
-    return dayjs.utc(arg, dateFormat).toDate();
+    return parse(arg);
   }
 }, z.date());
 
