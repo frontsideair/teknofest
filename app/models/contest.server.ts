@@ -3,10 +3,14 @@ import { partition } from "~/utils/common";
 import { prisma } from "~/db.server";
 
 export async function getCurrentContest() {
-  // TODO: find the contest where applications are open
+  const now = new Date();
   return await prisma.contest.findFirst({
     select: { id: true },
     orderBy: { createdAt: "desc" },
+    where: {
+      applicationStart: { lte: now },
+      applicationEnd: { gte: now },
+    },
   });
 }
 

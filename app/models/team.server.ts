@@ -110,7 +110,6 @@ export async function assignResponsibility(
   responsibility: z.infer<typeof responsibilitySchema>
 ) {
   const team = await getTeam(teamId);
-  console.log({ team, teamId, userId });
   if (team) {
     switch (responsibility) {
       case "captain": {

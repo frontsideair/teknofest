@@ -3,21 +3,12 @@ import type {
   LoaderFunction,
   MetaFunction,
 } from "@remix-run/node";
-import { json, redirect } from "@remix-run/node";
+import { json, redirect, Response } from "@remix-run/node";
 import { Form, Link, useActionData } from "@remix-run/react";
 import * as React from "react";
 
-import { getUserId, createUserSession } from "~/session.server";
+import { createUserSession, getUserId } from "~/session.server";
 
-import {
-  createUser,
-  emailSchema,
-  fullNameSchema,
-  getUserByEmail,
-  passwordSchema,
-  roleSchema,
-} from "~/models/user.server";
-import { route } from "routes-gen";
 import {
   Anchor,
   Button,
@@ -30,12 +21,29 @@ import {
   TextInput,
   Title,
 } from "@mantine/core";
+import { route } from "routes-gen";
 import { z } from "zod";
+import { getCurrentContest } from "~/models/contest.server";
+import {
+  createUser,
+  emailSchema,
+  fullNameSchema,
+  getUserByEmail,
+  passwordSchema,
+  roleSchema,
+} from "~/models/user.server";
 
 export const loader: LoaderFunction = async ({ request }) => {
-  // TODO: registration open only if there is an active contest
   const userId = await getUserId(request);
-  if (userId) return redirect("/");
+  if (userId) {
+    return redirect("/");
+  }
+
+  const contest = await getCurrentContest();
+  if (!contest) {
+    throw new Response("There is no active contest", { status: 404 });
+  }
+
   return json({});
 };
 
