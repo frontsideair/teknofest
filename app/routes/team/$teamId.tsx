@@ -1,4 +1,11 @@
-import { Container, createStyles, Group, Navbar, Title } from "@mantine/core";
+import {
+  Box,
+  Container,
+  createStyles,
+  Group,
+  Navbar,
+  Title,
+} from "@mantine/core";
 import type { LoaderFunction, MetaFunction } from "@remix-run/node";
 import { Response } from "@remix-run/node";
 import { json } from "@remix-run/node";
@@ -114,7 +121,9 @@ export default function TeamPage() {
             ))}
           </Navbar.Section>
         </Navbar>
-        <Outlet />
+        <Box style={{ flexGrow: 1 }}>
+          <Outlet />
+        </Box>
       </Group>
     </Container>
   );
