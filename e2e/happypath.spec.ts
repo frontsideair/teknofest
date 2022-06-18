@@ -109,6 +109,12 @@ export class TeknofestPage {
       .click();
   }
 
+  async pickDateRange(name: string, start: number, end: number) {
+    await this.main.locator(`role=textbox[name=/${name}/i]`).click();
+    await this.pickDate(start);
+    await this.pickDate(end);
+  }
+
   async pickMenuItem(text: string) {
     await this.page
       .locator(`role=menu >> role=menuitem[name=/${text}/i]`)
@@ -140,11 +146,12 @@ test.describe("Admin flow", () => {
     await tf.main.locator("role=link[name=/create new contest/i]").click();
     await expect(tf.heading).toHaveText(/create new contest/i);
 
-    await tf.main
-      .locator("role=textbox[name=/application date range/i]")
-      .click();
-    await tf.pickDate(1);
-    await tf.pickDate(28);
+    await tf.pickDateRange("application and progress report", 1, 28);
+    await tf.pickDateRange("letters of commitment and consent upload", 1, 28);
+    await tf.pickDateRange("technical design report", 1, 28);
+    await tf.pickDateRange("technical controls", 1, 28);
+    await tf.pickDateRange("final races", 1, 28);
+
     await tf.main.locator("role=button[name=/create/i]").click();
     await expect(tf.heading).toHaveText(/^contest/i);
   });

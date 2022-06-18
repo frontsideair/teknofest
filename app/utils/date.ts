@@ -14,3 +14,8 @@ export function format(date: Date) {
 export function parse(date: string) {
   return dayjs.utc(date, dateFormat).toDate();
 }
+
+export type DateRange = {
+  start: Date;
+  end: Date;
+};

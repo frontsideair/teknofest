@@ -11,6 +11,10 @@ import { dateRangeString } from "~/utils/zod";
 
 const formSchema = z.object({
   applicationDateRange: dateRangeString,
+  letterUploadDateRange: dateRangeString,
+  designReportDateRange: dateRangeString,
+  techControlsDateRange: dateRangeString,
+  finalRaceDateRange: dateRangeString,
 });
 
 type ActionData = z.inferFlattenedErrors<typeof formSchema>["fieldErrors"];
@@ -19,17 +23,27 @@ export const action: ActionFunction = async ({ request }) => {
   const formData = await request.formData();
   const parseResult = formSchema.safeParse(Object.fromEntries(formData));
   if (parseResult.success) {
+    const {
+      applicationDateRange,
+      letterUploadDateRange,
+      designReportDateRange,
+      techControlsDateRange,
+      finalRaceDateRange,
+    } = parseResult.data;
     const { id } = await createContest(
-      parseResult.data.applicationDateRange.start,
-      parseResult.data.applicationDateRange.end
+      applicationDateRange,
+      letterUploadDateRange,
+      designReportDateRange,
+      techControlsDateRange,
+      finalRaceDateRange
     );
     return redirect(route("/contest/:contestId", { contestId: String(id) }));
   } else {
     console.error(parseResult.error);
-    return json<ActionData>(
-      { applicationDateRange: ["Date range is required"] },
-      { status: 400 }
-    );
+    const { fieldErrors } = parseResult.error.flatten();
+    return json<ActionData>(fieldErrors, {
+      status: 400,
+    });
   }
 };
 
@@ -47,11 +61,43 @@ export default function NewContest() {
       <Title order={2}>Create new contest</Title>
       <Form method="post" action="/contest/new">
         <DateRangePicker
-          label="Application date range"
+          label="Application and progress report"
           required
           autoFocus
           name="applicationDateRange"
           error={actionData?.applicationDateRange}
+        />
+
+        <DateRangePicker
+          label="Letters of commitment and consent upload"
+          required
+          autoFocus
+          name="letterUploadDateRange"
+          error={actionData?.letterUploadDateRange}
+        />
+
+        <DateRangePicker
+          label="Technical design report"
+          required
+          autoFocus
+          name="designReportDateRange"
+          error={actionData?.designReportDateRange}
+        />
+
+        <DateRangePicker
+          label="Technical controls"
+          required
+          autoFocus
+          name="techControlsDateRange"
+          error={actionData?.techControlsDateRange}
+        />
+
+        <DateRangePicker
+          label="Final races"
+          required
+          autoFocus
+          name="finalRaceDateRange"
+          error={actionData?.finalRaceDateRange}
         />
 
         <Group position="right" mt="md">

@@ -1,6 +1,7 @@
 import type { Contest, User } from "@prisma/client";
 import { partition } from "~/utils/common";
 import { prisma } from "~/db.server";
+import type { DateRange } from "~/utils/date";
 
 export async function getCurrentContest() {
   const now = new Date();
@@ -25,13 +26,24 @@ export async function getContest(id: Contest["id"]) {
 }
 
 export async function createContest(
-  applicationStart: Date,
-  applicationEnd: Date
+  application: DateRange,
+  letterUpload: DateRange,
+  designReport: DateRange,
+  techControls: DateRange,
+  finalRace: DateRange
 ) {
   return await prisma.contest.create({
     data: {
-      applicationStart,
-      applicationEnd,
+      applicationStart: application.start,
+      applicationEnd: application.end,
+      letterUploadStart: letterUpload.start,
+      letterUploadEnd: letterUpload.end,
+      designReportStart: designReport.start,
+      designReportEnd: designReport.end,
+      techControlsStart: techControls.start,
+      techControlsEnd: techControls.end,
+      finalRaceStart: finalRace.start,
+      finalRaceEnd: finalRace.end,
     },
   });
 }
