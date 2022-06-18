@@ -71,7 +71,6 @@ export default function NewContest() {
         <DateRangePicker
           label="Letters of commitment and consent upload"
           required
-          autoFocus
           name="letterUploadDateRange"
           error={actionData?.letterUploadDateRange}
         />
@@ -79,7 +78,6 @@ export default function NewContest() {
         <DateRangePicker
           label="Technical design report"
           required
-          autoFocus
           name="designReportDateRange"
           error={actionData?.designReportDateRange}
         />
@@ -87,7 +85,6 @@ export default function NewContest() {
         <DateRangePicker
           label="Technical controls"
           required
-          autoFocus
           name="techControlsDateRange"
           error={actionData?.techControlsDateRange}
         />
@@ -95,7 +92,6 @@ export default function NewContest() {
         <DateRangePicker
           label="Final races"
           required
-          autoFocus
           name="finalRaceDateRange"
           error={actionData?.finalRaceDateRange}
         />
