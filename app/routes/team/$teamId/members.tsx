@@ -15,6 +15,7 @@ import {
 } from "~/models/team.server";
 import { requireRole } from "~/session.server";
 import { getBaseUrl } from "~/utils/common";
+import type { Jsonify } from "~/utils/jsonify";
 import { numericString } from "~/utils/zod";
 
 type LoaderData = {
@@ -76,7 +77,7 @@ export const action: ActionFunction = async ({ request, params }) => {
 };
 
 export default function Members() {
-  const { team, baseUrl } = useLoaderData<LoaderData>();
+  const { team, baseUrl } = useLoaderData<Jsonify<LoaderData>>();
   const inviteLink = `${baseUrl}/team/join?inviteCode=${team.inviteCode}`;
 
   return (

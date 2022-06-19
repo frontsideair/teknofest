@@ -9,6 +9,7 @@ import { route } from "routes-gen";
 import ProgressReportUploader from "~/components/ProgressReportUploader";
 import { getTeam, setProgressReportPath } from "~/models/team.server";
 import { requireRole } from "~/session.server";
+import type { Jsonify } from "~/utils/jsonify";
 import { numericString } from "~/utils/zod";
 
 type LoaderData = {
@@ -62,7 +63,7 @@ export const action: ActionFunction = async ({ request, params }) => {
 };
 
 export default function ProgressReport() {
-  const { team } = useLoaderData<LoaderData>();
+  const { team } = useLoaderData<Jsonify<LoaderData>>();
   return (
     <Stack>
       <Title order={3}>Upload progress report</Title>

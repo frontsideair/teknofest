@@ -18,6 +18,7 @@ import {
   joinTeam,
 } from "~/models/team.server";
 import type { Team } from "@prisma/client";
+import type { Jsonify } from "~/utils/jsonify";
 
 type LoaderData = { inviteCode: string; teamName: Team["name"] };
 
@@ -60,7 +61,7 @@ export const meta: MetaFunction = () => {
 };
 
 export default function JoinTeam() {
-  const { teamName, inviteCode } = useLoaderData<LoaderData>();
+  const { teamName, inviteCode } = useLoaderData<Jsonify<LoaderData>>();
 
   return (
     <Container size="xs">

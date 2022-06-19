@@ -7,6 +7,7 @@ import { route } from "routes-gen";
 import Sidebar, { SidebarItem } from "~/components/Sidebar";
 import { getTeam } from "~/models/team.server";
 import { requireRole } from "~/session.server";
+import type { Jsonify } from "~/utils/jsonify";
 import { numericString } from "~/utils/zod";
 
 type LoaderData = {
@@ -31,7 +32,7 @@ export const meta: MetaFunction = ({ data }) => {
 };
 
 export default function TeamPage() {
-  const { team } = useLoaderData<LoaderData>();
+  const { team } = useLoaderData<Jsonify<LoaderData>>();
 
   const links = [
     {

@@ -13,9 +13,10 @@ import { useSubmit } from "@remix-run/react";
 import { route } from "routes-gen";
 import type { getTeam, Responsibility } from "~/models/team.server";
 import { useLoading } from "~/utils/hooks";
+import type { Jsonify } from "~/utils/jsonify";
 
 type Props = {
-  members: NonNullable<Awaited<ReturnType<typeof getTeam>>>["members"];
+  members: Jsonify<NonNullable<Awaited<ReturnType<typeof getTeam>>>["members"]>;
 };
 
 export default function TeamMembers({ members }: Props) {

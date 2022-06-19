@@ -13,6 +13,7 @@ import type { User } from "~/models/user.server";
 import { fullNameSchema } from "~/models/user.server";
 import { changeDetails } from "~/models/user.server";
 import { requireUser, requireUserId } from "~/session.server";
+import type { Jsonify } from "~/utils/jsonify";
 
 type LoaderData = {
   fullName: User["fullName"];
@@ -59,7 +60,7 @@ export const meta: MetaFunction = () => {
 };
 
 export default function Profile() {
-  const loaderData = useLoaderData<LoaderData>();
+  const loaderData = useLoaderData<Jsonify<LoaderData>>();
   const actionData = useActionData<ActionData>();
   const fullNameRef = React.useRef<HTMLInputElement>(null);
 

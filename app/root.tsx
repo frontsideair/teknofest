@@ -27,6 +27,7 @@ import { route } from "routes-gen";
 import { getUser } from "./session.server";
 import LogoutButton from "./components/LogoutButton";
 import CaughtError from "./components/CaughtError";
+import type { Jsonify } from "./utils/jsonify";
 
 export const meta: MetaFunction = () => ({
   charset: "utf-8",
@@ -45,7 +46,7 @@ export const loader: LoaderFunction = async ({ request }) => {
 };
 
 function AppHeader() {
-  const { user } = useLoaderData<LoaderData>();
+  const { user } = useLoaderData<Jsonify<LoaderData>>();
 
   return (
     <Header height="auto">

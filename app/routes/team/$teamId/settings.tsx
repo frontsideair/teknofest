@@ -7,6 +7,7 @@ import { route } from "routes-gen";
 import { z } from "zod";
 import { getTeam, nameSchema, updateTeam } from "~/models/team.server";
 import { requireRole } from "~/session.server";
+import type { Jsonify } from "~/utils/jsonify";
 import { numericString } from "~/utils/zod";
 
 type LoaderData = {
@@ -49,7 +50,7 @@ export const action: ActionFunction = async ({ request, params }) => {
 };
 
 export default function Settings() {
-  const { team } = useLoaderData<LoaderData>();
+  const { team } = useLoaderData<Jsonify<LoaderData>>();
   const actionData = useActionData<ActionData>();
 
   return (
