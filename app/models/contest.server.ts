@@ -22,6 +22,7 @@ export async function getContests() {
 export async function getContest(id: Contest["id"]) {
   return await prisma.contest.findUnique({
     where: { id },
+    include: { teams: { include: { advisor: true } } },
   });
 }
 
@@ -33,6 +34,31 @@ export async function createContest(
   finalRace: DateRange
 ) {
   return await prisma.contest.create({
+    data: {
+      applicationStart: application.start,
+      applicationEnd: application.end,
+      letterUploadStart: letterUpload.start,
+      letterUploadEnd: letterUpload.end,
+      designReportStart: designReport.start,
+      designReportEnd: designReport.end,
+      techControlsStart: techControls.start,
+      techControlsEnd: techControls.end,
+      finalRaceStart: finalRace.start,
+      finalRaceEnd: finalRace.end,
+    },
+  });
+}
+
+export async function updateContest(
+  id: Contest["id"],
+  application: DateRange,
+  letterUpload: DateRange,
+  designReport: DateRange,
+  techControls: DateRange,
+  finalRace: DateRange
+) {
+  return await prisma.contest.update({
+    where: { id },
     data: {
       applicationStart: application.start,
       applicationEnd: application.end,

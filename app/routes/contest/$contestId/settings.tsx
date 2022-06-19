@@ -1,14 +1,30 @@
-import { Button, Container, Group, Title } from "@mantine/core";
+import { Button, Group, Stack, Title } from "@mantine/core";
 import { DateRangePicker } from "@mantine/dates";
-import { Form, useActionData } from "@remix-run/react";
-import type { ActionFunction, MetaFunction } from "@remix-run/node";
-import { json } from "@remix-run/node";
-import { redirect } from "@remix-run/node";
+import { Form, useActionData, useLoaderData } from "@remix-run/react";
+import type { ActionFunction, LoaderFunction } from "@remix-run/server-runtime";
+import { redirect } from "@remix-run/server-runtime";
+import { json } from "@remix-run/server-runtime";
 import { route } from "routes-gen";
 import { z } from "zod";
-import { createContest } from "~/models/contest.server";
-import { dateRangeString } from "~/utils/zod";
+import { getContest, updateContest } from "~/models/contest.server";
 import { requireRole } from "~/session.server";
+import type { Jsonify } from "~/utils/jsonify";
+import { dateRangeString, numericString } from "~/utils/zod";
+
+type LoaderData = {
+  contest: NonNullable<Awaited<ReturnType<typeof getContest>>>;
+};
+
+export const loader: LoaderFunction = async ({ request, params }) => {
+  const contestId = numericString.parse(params.contestId);
+  await requireRole(request, "admin");
+  const contest = await getContest(contestId);
+  if (contest) {
+    return json<LoaderData>({ contest });
+  } else {
+    throw new Response("No such contest found", { status: 404 });
+  }
+};
 
 const formSchema = z.object({
   applicationDateRange: dateRangeString,
@@ -20,7 +36,8 @@ const formSchema = z.object({
 
 type ActionData = z.inferFlattenedErrors<typeof formSchema>["fieldErrors"];
 
-export const action: ActionFunction = async ({ request }) => {
+export const action: ActionFunction = async ({ params, request }) => {
+  const contestId = numericString.parse(params.contestId);
   await requireRole(request, "admin");
   const formData = await request.formData();
   const parseResult = formSchema.safeParse(Object.fromEntries(formData));
@@ -32,7 +49,8 @@ export const action: ActionFunction = async ({ request }) => {
       techControlsDateRange,
       finalRaceDateRange,
     } = parseResult.data;
-    const { id } = await createContest(
+    const { id } = await updateContest(
+      contestId,
       applicationDateRange,
       letterUploadDateRange,
       designReportDateRange,
@@ -49,25 +67,25 @@ export const action: ActionFunction = async ({ request }) => {
   }
 };
 
-export const meta: MetaFunction = () => {
-  return {
-    title: "Create new contest",
-  };
-};
-
-export default function NewContest() {
+export default function Settings() {
+  const { contest } = useLoaderData<Jsonify<LoaderData>>();
   const actionData = useActionData<ActionData>();
 
   return (
-    <Container size="sm">
-      <Title order={2}>Create new contest</Title>
-      <Form method="post" action="/contest/new">
+    <Stack>
+      <Title order={3}>Change contest details</Title>
+
+      <Form method="post">
         <DateRangePicker
           label="Application and progress report"
           required
           autoFocus
           name="applicationDateRange"
           error={actionData?.applicationDateRange?.[0]}
+          defaultValue={[
+            new Date(contest?.applicationStart),
+            new Date(contest?.applicationEnd),
+          ]}
         />
 
         <DateRangePicker
@@ -75,6 +93,10 @@ export default function NewContest() {
           required
           name="letterUploadDateRange"
           error={actionData?.letterUploadDateRange?.[0]}
+          defaultValue={[
+            new Date(contest?.letterUploadStart),
+            new Date(contest?.letterUploadEnd),
+          ]}
         />
 
         <DateRangePicker
@@ -82,6 +104,10 @@ export default function NewContest() {
           required
           name="designReportDateRange"
           error={actionData?.designReportDateRange?.[0]}
+          defaultValue={[
+            new Date(contest?.designReportStart),
+            new Date(contest?.designReportEnd),
+          ]}
         />
 
         <DateRangePicker
@@ -89,6 +115,10 @@ export default function NewContest() {
           required
           name="techControlsDateRange"
           error={actionData?.techControlsDateRange?.[0]}
+          defaultValue={[
+            new Date(contest?.techControlsStart),
+            new Date(contest?.techControlsEnd),
+          ]}
         />
 
         <DateRangePicker
@@ -96,12 +126,16 @@ export default function NewContest() {
           required
           name="finalRaceDateRange"
           error={actionData?.finalRaceDateRange?.[0]}
+          defaultValue={[
+            new Date(contest?.finalRaceStart),
+            new Date(contest?.finalRaceEnd),
+          ]}
         />
 
         <Group position="right" mt="md">
-          <Button type="submit">Create</Button>
+          <Button type="submit">Save</Button>
         </Group>
       </Form>
-    </Container>
+    </Stack>
   );
 }

@@ -1,59 +1,13 @@
-import {
-  Box,
-  Container,
-  createStyles,
-  Group,
-  Navbar,
-  Title,
-} from "@mantine/core";
+import { Box, Container, Group, Title } from "@mantine/core";
 import type { LoaderFunction, MetaFunction } from "@remix-run/node";
 import { Response } from "@remix-run/node";
 import { json } from "@remix-run/node";
-import { NavLink, Outlet, useLoaderData } from "@remix-run/react";
+import { Outlet, useLoaderData } from "@remix-run/react";
 import { route } from "routes-gen";
+import Sidebar, { SidebarItem } from "~/components/Sidebar";
 import { getTeam } from "~/models/team.server";
 import { requireRole } from "~/session.server";
 import { numericString } from "~/utils/zod";
-
-const useStyles = createStyles((theme, _params) => {
-  return {
-    link: {
-      ...theme.fn.focusStyles(),
-      display: "flex",
-      alignItems: "center",
-      textDecoration: "none",
-      fontSize: theme.fontSizes.sm,
-      color:
-        theme.colorScheme === "dark"
-          ? theme.colors.dark[1]
-          : theme.colors.gray[7],
-      padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
-      borderRadius: theme.radius.sm,
-      fontWeight: 500,
-
-      "&:hover": {
-        backgroundColor:
-          theme.colorScheme === "dark"
-            ? theme.colors.dark[6]
-            : theme.colors.gray[0],
-        color: theme.colorScheme === "dark" ? theme.white : theme.black,
-      },
-    },
-
-    linkActive: {
-      "&, &:hover": {
-        backgroundColor:
-          theme.colorScheme === "dark"
-            ? theme.fn.rgba(theme.colors[theme.primaryColor]![8], 0.25)
-            : theme.colors[theme.primaryColor]![0],
-        color:
-          theme.colorScheme === "dark"
-            ? theme.white
-            : theme.colors[theme.primaryColor]![7],
-      },
-    },
-  };
-});
 
 type LoaderData = {
   team: NonNullable<Awaited<ReturnType<typeof getTeam>>>;
@@ -78,7 +32,6 @@ export const meta: MetaFunction = ({ data }) => {
 
 export default function TeamPage() {
   const { team } = useLoaderData<LoaderData>();
-  const { classes, cx } = useStyles();
 
   const links = [
     {
@@ -103,24 +56,11 @@ export default function TeamPage() {
     <Container size="md">
       <Title order={2}>Team {team.name}</Title>
       <Group noWrap align="flex-start" mt="md">
-        <Navbar px="md" width={{ sm: 240 }}>
-          <Navbar.Section grow>
-            {links.map((link, index) => (
-              <NavLink
-                end
-                key={index}
-                className={({ isActive }) =>
-                  cx(classes.link, {
-                    [classes.linkActive]: isActive,
-                  })
-                }
-                to={link.to}
-              >
-                {link.label}
-              </NavLink>
-            ))}
-          </Navbar.Section>
-        </Navbar>
+        <Sidebar>
+          {links.map((link, index) => (
+            <SidebarItem key={index} link={link} />
+          ))}
+        </Sidebar>
         <Box style={{ flexGrow: 1 }}>
           <Outlet />
         </Box>

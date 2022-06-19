@@ -48,7 +48,7 @@ export const action: ActionFunction = async ({ request, params }) => {
   }
 };
 
-export default function Members() {
+export default function Settings() {
   const { team } = useLoaderData<LoaderData>();
   const actionData = useActionData<ActionData>();
 

@@ -77,10 +77,27 @@ export async function requireUser(
   throw await logout(request);
 }
 
+function isPrivileged(userRole: User["role"], targetRole: User["role"]) {
+  switch (userRole) {
+    case "admin": {
+      return true;
+    }
+    case "advisor": {
+      return targetRole === "advisor" || targetRole === "student";
+    }
+    case "student": {
+      return targetRole === "student";
+    }
+    default: {
+      return false;
+    }
+  }
+}
+
 export async function requireRole(request: Request, role: User["role"]) {
   const user = await requireUser(request);
 
-  if (user.role !== role) {
+  if (!isPrivileged(user.role, role)) {
     throw new Response(" You are not authorized to see this page", {
       status: 401,
     });
