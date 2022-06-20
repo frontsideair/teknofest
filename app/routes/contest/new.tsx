@@ -1,5 +1,4 @@
 import { Button, Container, Group, Title } from "@mantine/core";
-import { DateRangePicker } from "@mantine/dates";
 import { Form, useActionData } from "@remix-run/react";
 import type { ActionFunction, MetaFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
@@ -9,6 +8,7 @@ import { z } from "zod";
 import { createContest } from "~/models/contest.server";
 import { dateRangeString } from "~/utils/zod";
 import { requireRole } from "~/session.server";
+import DateRangePicker from "~/components/DateRangePicker";
 
 const formSchema = z.object({
   applicationDateRange: dateRangeString,

@@ -1,5 +1,8 @@
 import type { Locator, Page } from "@playwright/test";
 import { test as base, expect } from "@playwright/test";
+import type { Dayjs } from "dayjs";
+import dayjs from "dayjs";
+import { format } from "~/utils/date";
 
 type Role = "admin" | "advisor" | "student";
 
@@ -102,14 +105,14 @@ export class TeknofestPage {
     await this.submit();
   }
 
-  async pickDate(day: number) {
+  async pickDate(day: Dayjs) {
     return await this.page
-      .locator(`role=table >> role=cell[name=${day}]`)
+      .locator(`role=cell[name="${format(day.toDate())}"]`)
       .first()
       .click();
   }
 
-  async pickDateRange(name: string, start: number, end: number) {
+  async pickDateRange(name: string, start: Dayjs, end: Dayjs) {
     await this.main.locator(`role=textbox[name=/${name}/i]`).click();
     await this.pickDate(start);
     await this.pickDate(end);
@@ -146,11 +149,32 @@ test.describe("Admin flow", () => {
     await tf.main.locator("role=link[name=/create new contest/i]").click();
     await expect(tf.heading).toHaveText(/create new contest/i);
 
-    await tf.pickDateRange("application and progress report", 1, 28);
-    await tf.pickDateRange("letters of commitment and consent upload", 1, 28);
-    await tf.pickDateRange("technical design report", 1, 28);
-    await tf.pickDateRange("technical controls", 1, 28);
-    await tf.pickDateRange("final races", 1, 28);
+    const now = dayjs();
+    await tf.pickDateRange(
+      "application and progress report",
+      now.startOf("month"),
+      now.endOf("month")
+    );
+    await tf.pickDateRange(
+      "letters of commitment and consent upload",
+      now.endOf("month").add(1, "day"),
+      now.endOf("month").add(2, "days")
+    );
+    await tf.pickDateRange(
+      "technical design report",
+      now.endOf("month").add(3, "days"),
+      now.endOf("month").add(4, "days")
+    );
+    await tf.pickDateRange(
+      "technical controls",
+      now.endOf("month").add(5, "days"),
+      now.endOf("month").add(6, "days")
+    );
+    await tf.pickDateRange(
+      "final races",
+      now.endOf("month").add(7, "days"),
+      now.endOf("month").add(8, "days")
+    );
 
     await tf.main.locator("role=button[name=/create/i]").click();
     await expect(tf.heading).toHaveText(/^contest/i);

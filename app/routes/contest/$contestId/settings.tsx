@@ -1,11 +1,11 @@
 import { Button, Group, Stack, Title } from "@mantine/core";
-import { DateRangePicker } from "@mantine/dates";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import type { ActionFunction, LoaderFunction } from "@remix-run/server-runtime";
 import { redirect } from "@remix-run/server-runtime";
 import { json } from "@remix-run/server-runtime";
 import { route } from "routes-gen";
 import { z } from "zod";
+import DateRangePicker from "~/components/DateRangePicker";
 import { getContest, updateContest } from "~/models/contest.server";
 import { requireRole } from "~/session.server";
 import type { Jsonify } from "~/utils/jsonify";
