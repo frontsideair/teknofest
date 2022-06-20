@@ -44,6 +44,20 @@ export async function addJudgeToContest(
   });
 }
 
+export async function removeJudgeFromContest(
+  userId: User["id"],
+  contestId: Contest["id"]
+) {
+  return await prisma.contestJudge.delete({
+    where: {
+      contestId_userId: {
+        contestId,
+        userId,
+      },
+    },
+  });
+}
+
 export async function getCurrentContest() {
   const now = new Date();
   return await prisma.contest.findFirst({
