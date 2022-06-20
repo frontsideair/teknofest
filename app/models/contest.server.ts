@@ -6,7 +6,6 @@ import type { DateRange } from "~/utils/date";
 export async function getCurrentContest() {
   const now = new Date();
   return await prisma.contest.findFirst({
-    select: { id: true },
     orderBy: { createdAt: "desc" },
     where: {
       applicationStart: { lte: now },
