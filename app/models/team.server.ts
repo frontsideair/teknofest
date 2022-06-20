@@ -206,3 +206,11 @@ export async function updateTeam(id: Team["id"], name: Team["name"]) {
     data: { name },
   });
 }
+
+export async function deleteTeam(teamId: Team["id"]) {
+  return await prisma.team.delete({
+    where: {
+      id: teamId,
+    },
+  });
+}
