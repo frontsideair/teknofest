@@ -2,7 +2,10 @@ import type { Team, TeamMember, User } from "@prisma/client";
 import { randomUUID } from "crypto";
 import { z } from "zod";
 import { prisma } from "~/db.server";
-import { getContestWithApplicationsOpen } from "./contest.server";
+import {
+  ensureCurrentContest,
+  getContestWithApplicationsOpen,
+} from "./contest.server";
 
 export const nameSchema = z
   .string()
@@ -20,6 +23,15 @@ export async function getTeam(id: Team["id"]) {
     where: { id },
     include: { members: { include: { user: true } }, contest: true },
   });
+}
+
+async function ensureTeam(id: Team["id"]) {
+  const team = await getTeam(id);
+  if (!team) {
+    throw new Error(`Team ${id} not found`);
+  } else {
+    return team;
+  }
 }
 
 export async function getTeams(memberId: User["id"]) {
@@ -42,8 +54,8 @@ export function ensureCanJoinTeam(user: User, team: TeamWithMembers) {
   const isAdvisorOfTeam = user.id === team.advisorId;
   // user is already member of team
   const isMemberOfTeam = team.members.some(({ userId }) => userId === user.id);
-  // team has no open slots
-  const teamIsFull = team.members.length >= 15;
+  // team has no open slots (include advisor)
+  const teamIsFull = team.members.length >= 14;
   // team has coadvisor slot
   const teamHasCoadvisorSlot = team.members.every(
     ({ user }) => user.role !== "advisor"
@@ -64,12 +76,15 @@ export function ensureCanJoinTeam(user: User, team: TeamWithMembers) {
 
 export async function joinTeam(user: User, team: TeamWithMembers) {
   ensureCanJoinTeam(user, team);
+  await ensureCurrentContest(team.contestId);
   return await prisma.teamMember.create({
     data: { userId: user.id, teamId: team.id },
   });
 }
 
 export async function removeFromTeam(userId: User["id"], teamId: Team["id"]) {
+  const team = await ensureTeam(teamId);
+  await ensureCurrentContest(team.contestId);
   return await prisma.teamMember.delete({
     where: { teamId_userId: { teamId, userId } },
   });
@@ -111,6 +126,7 @@ export async function assignResponsibility(
 ) {
   const team = await getTeam(teamId);
   if (team) {
+    await ensureCurrentContest(team.contestId);
     switch (responsibility) {
       case "captain": {
         if (team.advisorId === userId) {
@@ -146,6 +162,8 @@ export async function assignResponsibility(
 }
 
 export async function regenerateInviteCode(teamId: Team["id"]) {
+  const team = await ensureTeam(teamId);
+  await ensureCurrentContest(team.contestId);
   return await prisma.team.update({
     where: { id: teamId },
     data: { inviteCode: randomUUID() },
@@ -156,6 +174,8 @@ export async function setProgressReportPath(
   teamId: Team["id"],
   progressReportPath: string
 ) {
+  const team = await ensureTeam(teamId);
+  await ensureCurrentContest(team.contestId);
   await prisma.team.update({
     where: { id: teamId },
     data: { progressReportPath },
@@ -177,11 +197,13 @@ export async function createTeam(
       },
     });
   } else {
-    throw new Error("No contest found");
+    throw new Error("No open contest found");
   }
 }
 
 export async function updateTeam(id: Team["id"], name: Team["name"]) {
+  const team = await ensureTeam(id);
+  await ensureCurrentContest(team.contestId);
   return await prisma.team.update({
     where: { id },
     data: { name },

@@ -7,6 +7,7 @@ import { unstable_parseMultipartFormData } from "@remix-run/server-runtime";
 import { redirect } from "@remix-run/server-runtime";
 import { route } from "routes-gen";
 import ProgressReportUploader from "~/components/ProgressReportUploader";
+import { isCurrentContest } from "~/models/contest.server";
 import { getTeam, setProgressReportPath } from "~/models/team.server";
 import { requireRole } from "~/session.server";
 import type { Jsonify } from "~/utils/jsonify";
@@ -14,6 +15,7 @@ import { numericString } from "~/utils/zod";
 
 type LoaderData = {
   team: NonNullable<Awaited<ReturnType<typeof getTeam>>>;
+  isCurrentContest: boolean;
 };
 
 export const loader: LoaderFunction = async ({ request, params }) => {
@@ -21,7 +23,8 @@ export const loader: LoaderFunction = async ({ request, params }) => {
   await requireRole(request, "advisor");
   const team = await getTeam(teamId);
   if (team) {
-    return json<LoaderData>({ team });
+    const isCurrent = await isCurrentContest(team.contestId);
+    return json<LoaderData>({ team, isCurrentContest: isCurrent });
   } else {
     throw new Response("No such team found", { status: 404 });
   }
@@ -63,7 +66,7 @@ export const action: ActionFunction = async ({ request, params }) => {
 };
 
 export default function ProgressReport() {
-  const { team } = useLoaderData<Jsonify<LoaderData>>();
+  const { team, isCurrentContest } = useLoaderData<Jsonify<LoaderData>>();
   return (
     <Stack>
       <Title order={3}>Upload progress report</Title>
@@ -75,7 +78,9 @@ export default function ProgressReport() {
           ) : (
             <Text>No report uploaded yet</Text>
           )}
-          <Button type="submit">Upload</Button>
+          <Button type="submit" disabled={!isCurrentContest}>
+            Upload
+          </Button>
         </Group>
       </Form>
     </Stack>

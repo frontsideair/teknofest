@@ -1,4 +1,12 @@
-import { Button, Card, Container, Stack, Text, Title } from "@mantine/core";
+import {
+  Anchor,
+  Button,
+  Card,
+  Container,
+  List,
+  Text,
+  Title,
+} from "@mantine/core";
 import { Link } from "@remix-run/react";
 import { route } from "routes-gen";
 import type { getAdvisorContests } from "~/models/contest.server";
@@ -10,6 +18,7 @@ type Props = {
 export default function AdvisorDashboard({ contests }: Props) {
   const [[currentContest], pastContests] = contests;
   const currentTeam = currentContest?.teams[0];
+  const pastTeams = pastContests.map((contest) => contest.teams).flat();
 
   return (
     <Container size="sm">
@@ -23,24 +32,34 @@ export default function AdvisorDashboard({ contests }: Props) {
             component={Link}
             to={route("/team/:teamId", { teamId: String(currentTeam.id) })}
           >
-            Edit team
+            View team
           </Button>
         </Card>
       ) : (
-        <Card>
-          <Text>No team for current contest.</Text>
-          <Button component={Link} to={route("/team/new")}>
-            Create new team
-          </Button>
-        </Card>
+        <Text>
+          No team for the current contest.{" "}
+          <Anchor component={Link} to={route("/team/new")}>
+            Create new team?
+          </Anchor>
+        </Text>
       )}
-      <Title order={3}>Past Teams</Title>
-      <Stack>
-        {pastContests
-          .map((contest) => contest.teams)
-          .flat()
-          .map((team) => team.name)}
-      </Stack>
+      {pastTeams.length > 0 && (
+        <>
+          <Title order={3}>Past Teams</Title>
+          <List>
+            {pastTeams.map((team) => (
+              <List.Item key={team.id}>
+                <Anchor
+                  component={Link}
+                  to={route("/team/:teamId", { teamId: String(team.id) })}
+                >
+                  {team.name}
+                </Anchor>
+              </List.Item>
+            ))}
+          </List>
+        </>
+      )}
     </Container>
   );
 }

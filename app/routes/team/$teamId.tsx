@@ -55,7 +55,9 @@ export default function TeamPage() {
 
   return (
     <Container size="md">
-      <Title order={2}>Team {team.name}</Title>
+      <Title order={2}>
+        {team.name} ({team.contest.name})
+      </Title>
       <Group noWrap align="flex-start" mt="md">
         <Sidebar>
           {links.map((link, index) => (

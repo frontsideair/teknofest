@@ -28,6 +28,17 @@ export async function getCurrentContest() {
   });
 }
 
+export async function isCurrentContest(contestId: Contest["id"]) {
+  const currentContest = await getCurrentContest();
+  return contestId === currentContest?.id;
+}
+
+export async function ensureCurrentContest(contestId: Contest["id"]) {
+  if (!(await isCurrentContest(contestId))) {
+    throw new Error("Contest is not current");
+  }
+}
+
 export async function getContests() {
   return await prisma.contest.findMany({ orderBy: { createdAt: "desc" } });
 }

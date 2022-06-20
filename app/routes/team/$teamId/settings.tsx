@@ -5,6 +5,7 @@ import { redirect } from "@remix-run/server-runtime";
 import { json } from "@remix-run/server-runtime";
 import { route } from "routes-gen";
 import { z } from "zod";
+import { isCurrentContest } from "~/models/contest.server";
 import { getTeam, nameSchema, updateTeam } from "~/models/team.server";
 import { requireRole } from "~/session.server";
 import type { Jsonify } from "~/utils/jsonify";
@@ -12,6 +13,7 @@ import { numericString } from "~/utils/zod";
 
 type LoaderData = {
   team: NonNullable<Awaited<ReturnType<typeof getTeam>>>;
+  isCurrentContest: boolean;
 };
 
 export const loader: LoaderFunction = async ({ request, params }) => {
@@ -19,7 +21,8 @@ export const loader: LoaderFunction = async ({ request, params }) => {
   await requireRole(request, "advisor");
   const team = await getTeam(teamId);
   if (team) {
-    return json<LoaderData>({ team });
+    const isCurrent = await isCurrentContest(team.contestId);
+    return json<LoaderData>({ team, isCurrentContest: isCurrent });
   } else {
     throw new Response("No such team found", { status: 404 });
   }
@@ -50,24 +53,29 @@ export const action: ActionFunction = async ({ request, params }) => {
 };
 
 export default function Settings() {
-  const { team } = useLoaderData<Jsonify<LoaderData>>();
+  const { team, isCurrentContest } = useLoaderData<Jsonify<LoaderData>>();
   const actionData = useActionData<ActionData>();
 
   return (
     <Stack>
       <Title order={3}>Change team details</Title>
       <Form method="post">
-        <TextInput
-          label="Team name"
-          description="Maximum 10 characters"
-          required
-          name="name"
-          error={actionData?.name}
-          defaultValue={team.name}
-        />
-        <Group position="right" mt="md">
-          <Button type="submit">Save</Button>
-        </Group>
+        <fieldset
+          style={{ border: 0, padding: 0, margin: 0 }}
+          disabled={!isCurrentContest}
+        >
+          <TextInput
+            label="Team name"
+            description="Maximum 10 characters"
+            required
+            name="name"
+            error={actionData?.name}
+            defaultValue={team.name}
+          />
+          <Group position="right" mt="md">
+            <Button type="submit">Save</Button>
+          </Group>
+        </fieldset>
       </Form>
     </Stack>
   );

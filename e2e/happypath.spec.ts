@@ -183,7 +183,7 @@ test.describe("Admin flow", () => {
 
     await tf.main.locator("role=button[name=/create/i]").click();
     // TODO: ensure no errors after form submit
-    await expect(tf.heading).toHaveText(tf.contestName);
+    await expect(tf.heading).toContainText(tf.contestName);
   });
 });
 
@@ -212,7 +212,7 @@ test.describe("Advisor flow", () => {
     await tf.login(tf.users.advisor);
     await tf.main
       .locator("role=article", { hasText: tf.teamName })
-      .locator("role=link[name=/edit team/i]")
+      .locator("role=link[name=/view team/i]")
       .click();
     await expect(tf.heading).toContainText(tf.teamName);
 

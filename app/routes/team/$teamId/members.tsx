@@ -6,6 +6,7 @@ import { redirect } from "@remix-run/server-runtime";
 import { json } from "@remix-run/server-runtime";
 import { route } from "routes-gen";
 import TeamMembers from "~/components/TeamMembers";
+import { isCurrentContest } from "~/models/contest.server";
 import {
   assignResponsibility,
   getTeam,
@@ -21,6 +22,7 @@ import { numericString } from "~/utils/zod";
 type LoaderData = {
   team: NonNullable<Awaited<ReturnType<typeof getTeam>>>;
   baseUrl: string;
+  isCurrentContest: boolean;
 };
 
 export const loader: LoaderFunction = async ({ request, params }) => {
@@ -29,7 +31,8 @@ export const loader: LoaderFunction = async ({ request, params }) => {
   const team = await getTeam(teamId);
   const baseUrl = getBaseUrl();
   if (team) {
-    return json<LoaderData>({ team, baseUrl });
+    const isCurrent = await isCurrentContest(team.contestId);
+    return json<LoaderData>({ team, baseUrl, isCurrentContest: isCurrent });
   } else {
     throw new Response("No such team found", { status: 404 });
   }
@@ -77,7 +80,8 @@ export const action: ActionFunction = async ({ request, params }) => {
 };
 
 export default function Members() {
-  const { team, baseUrl } = useLoaderData<Jsonify<LoaderData>>();
+  const { team, baseUrl, isCurrentContest } =
+    useLoaderData<Jsonify<LoaderData>>();
   const inviteLink = `${baseUrl}/team/join?inviteCode=${team.inviteCode}`;
 
   return (
@@ -99,7 +103,9 @@ export default function Members() {
 
       <Prism language="markup">{inviteLink}</Prism>
       <Form method="put">
-        <Button type="submit">Regenerate invite code</Button>
+        <Button type="submit" disabled={!isCurrentContest}>
+          Regenerate invite code
+        </Button>
       </Form>
     </Stack>
   );
