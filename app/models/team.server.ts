@@ -18,7 +18,7 @@ export type Responsibility = z.infer<typeof responsibilitySchema>;
 export async function getTeam(id: Team["id"]) {
   return await prisma.team.findUnique({
     where: { id },
-    include: { members: { include: { user: true } } },
+    include: { members: { include: { user: true } }, contest: true },
   });
 }
 
