@@ -3,13 +3,24 @@ import { partition } from "~/utils/common";
 import { prisma } from "~/db.server";
 import type { DateRange } from "~/utils/date";
 
-export async function getCurrentContest() {
+export async function getContestWithApplicationsOpen() {
   const now = new Date();
   return await prisma.contest.findFirst({
     orderBy: { createdAt: "desc" },
     where: {
       applicationStart: { lte: now },
       applicationEnd: { gte: now },
+    },
+  });
+}
+
+export async function getCurrentContest() {
+  const now = new Date();
+  return await prisma.contest.findFirst({
+    orderBy: { createdAt: "desc" },
+    where: {
+      applicationStart: { lte: now },
+      finalRaceEnd: { gte: now },
     },
   });
 }

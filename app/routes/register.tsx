@@ -23,7 +23,7 @@ import {
 } from "@mantine/core";
 import { route } from "routes-gen";
 import { z } from "zod";
-import { getCurrentContest } from "~/models/contest.server";
+import { getContestWithApplicationsOpen } from "~/models/contest.server";
 import {
   createUser,
   emailSchema,
@@ -39,7 +39,7 @@ export const loader: LoaderFunction = async ({ request }) => {
     return redirect("/");
   }
 
-  const contest = await getCurrentContest();
+  const contest = await getContestWithApplicationsOpen();
   if (!contest) {
     throw new Response("There is no active contest", { status: 404 });
   }

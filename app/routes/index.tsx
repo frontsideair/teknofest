@@ -1,4 +1,4 @@
-import { Container, Group, Title } from "@mantine/core";
+import { Container, Group, Text, Title } from "@mantine/core";
 import type { Contest } from "@prisma/client";
 import { useLoaderData } from "@remix-run/react";
 import type { LoaderFunction } from "@remix-run/server-runtime";
@@ -7,15 +7,11 @@ import ContestTimeline from "~/components/ContestTimeline";
 import { getCurrentContest } from "~/models/contest.server";
 import type { Jsonify } from "~/utils/jsonify";
 
-type LoaderData = Contest;
+type LoaderData = Contest | null;
 
-export const loader: LoaderFunction = async ({ request, params }) => {
+export const loader: LoaderFunction = async () => {
   const contest = await getCurrentContest();
-  if (contest) {
-    return json<LoaderData>(contest);
-  } else {
-    throw new Response("Not found", { status: 404 });
-  }
+  return json<LoaderData>(contest);
 };
 
 export default function Index() {
@@ -24,7 +20,11 @@ export default function Index() {
     <Container size="sm">
       <Title order={2}>Current contest</Title>
       <Group mt="sm">
-        <ContestTimeline contest={contest} />
+        {contest ? (
+          <ContestTimeline contest={contest} />
+        ) : (
+          <Text>No active contest, check back later!</Text>
+        )}
       </Group>
     </Container>
   );

@@ -2,7 +2,7 @@ import type { Team, TeamMember, User } from "@prisma/client";
 import { randomUUID } from "crypto";
 import { z } from "zod";
 import { prisma } from "~/db.server";
-import { getCurrentContest } from "./contest.server";
+import { getContestWithApplicationsOpen } from "./contest.server";
 
 export const nameSchema = z
   .string()
@@ -166,7 +166,7 @@ export async function createTeam(
   name: Team["name"],
   advisorId: Team["advisorId"]
 ) {
-  const currentContest = await getCurrentContest();
+  const currentContest = await getContestWithApplicationsOpen();
 
   if (currentContest) {
     return prisma.team.create({
