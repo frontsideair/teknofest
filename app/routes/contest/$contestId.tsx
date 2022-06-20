@@ -9,14 +9,17 @@ import { requireRole } from "~/session.server";
 import type { Jsonify } from "~/utils/jsonify";
 import { numericString } from "~/utils/zod";
 
-type LoaderData = NonNullable<Awaited<ReturnType<typeof getContest>>>;
+type LoaderData = {
+  contest: NonNullable<Awaited<ReturnType<typeof getContest>>>;
+  userRole: string;
+};
 
 export const loader: LoaderFunction = async ({ request, params }) => {
   const contestId = numericString.parse(params.contestId);
-  await requireRole(request, "admin");
+  const user = await requireRole(request, "judge");
   const contest = await getContest(contestId);
   if (contest) {
-    return json<LoaderData>(contest);
+    return json<LoaderData>({ userRole: user.role, contest });
   } else {
     throw new Response("Not found", { status: 404 });
   }
@@ -24,29 +27,39 @@ export const loader: LoaderFunction = async ({ request, params }) => {
 
 export const meta: MetaFunction = ({ data }) => {
   return {
-    title: `Contest ${data.id}`,
+    title: `Contest ${data?.contest?.name}`,
   };
 };
 
 export default function ContestPage() {
-  const contest = useLoaderData<Jsonify<LoaderData>>();
+  const { contest, userRole } = useLoaderData<Jsonify<LoaderData>>();
 
   const links = [
     {
       to: route("/contest/:contestId", { contestId: String(contest.id) }),
       label: "Overview",
+      adminOnly: false,
     },
     {
       to: route("/contest/:contestId/teams", { contestId: String(contest.id) }),
       label: "Teams",
+      adminOnly: false,
+    },
+    {
+      to: route("/contest/:contestId/judges", {
+        contestId: String(contest.id),
+      }),
+      label: "Judges",
+      adminOnly: true,
     },
     {
       to: route("/contest/:contestId/settings", {
         contestId: String(contest.id),
       }),
       label: "Settings",
+      adminOnly: true,
     },
-  ];
+  ].filter((link) => userRole === "admin" || !link.adminOnly);
 
   return (
     <Container size="md">

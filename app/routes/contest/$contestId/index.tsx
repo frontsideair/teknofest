@@ -12,7 +12,7 @@ type LoaderData = NonNullable<Awaited<ReturnType<typeof getContest>>>;
 
 export const loader: LoaderFunction = async ({ request, params }) => {
   const contestId = numericString.parse(params.contestId);
-  await requireRole(request, "admin");
+  await requireRole(request, "judge");
   const contest = await getContest(contestId);
   if (contest) {
     return json<LoaderData>(contest);

@@ -7,7 +7,7 @@ import { prisma } from "~/db.server";
 export type { User } from "@prisma/client";
 
 export const fullNameSchema = z.string().min(1, "Full name is required");
-export const roleSchema = z.enum(["advisor", "student"]);
+export const roleSchema = z.enum(["judge", "advisor", "student"]);
 export const emailSchema = z.string().email("Email is invalid");
 export const passwordSchema = z.string().min(8, "Password is too short");
 
@@ -26,14 +26,13 @@ export async function createUser(
   role: User["role"]
 ) {
   const passwordHash = await bcrypt.hash(password, 10);
-  const parsedRole = z.enum(["admin", "advisor", "student"]).parse(role);
 
   return prisma.user.create({
     data: {
       fullName,
       email,
       passwordHash,
-      role: parsedRole,
+      role,
     },
   });
 }

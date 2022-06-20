@@ -3,6 +3,7 @@ import { partition } from "~/utils/common";
 import { prisma } from "~/db.server";
 import type { DateRange } from "~/utils/date";
 import { z } from "zod";
+import { randomUUID } from "node:crypto";
 
 export const nameSchema = z.string().min(1, "Name is required");
 
@@ -13,6 +14,32 @@ export async function getContestWithApplicationsOpen() {
     where: {
       applicationStart: { lte: now },
       applicationEnd: { gte: now },
+    },
+  });
+}
+
+export async function getContestByInvite(inviteCode: Contest["inviteCode"]) {
+  return await prisma.contest.findUnique({
+    where: { inviteCode },
+    include: { judges: { include: { user: true } } },
+  });
+}
+
+export async function regenerateInviteCode(contestId: Contest["id"]) {
+  return await prisma.contest.update({
+    where: { id: contestId },
+    data: { inviteCode: randomUUID() },
+  });
+}
+
+export async function addJudgeToContest(
+  userId: User["id"],
+  contestId: Contest["id"]
+) {
+  return await prisma.contestJudge.create({
+    data: {
+      userId,
+      contestId,
     },
   });
 }
@@ -43,10 +70,20 @@ export async function getContests() {
   return await prisma.contest.findMany({ orderBy: { createdAt: "desc" } });
 }
 
+export async function getJudgeContests(judgeId: User["id"]) {
+  return await prisma.contest.findMany({
+    orderBy: { createdAt: "desc" },
+    where: { judges: { some: { userId: judgeId } } },
+  });
+}
+
 export async function getContest(id: Contest["id"]) {
   return await prisma.contest.findUnique({
     where: { id },
-    include: { teams: { include: { advisor: true } } },
+    include: {
+      teams: { include: { advisor: true } },
+      judges: { include: { user: true } },
+    },
   });
 }
 

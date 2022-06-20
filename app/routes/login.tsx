@@ -53,13 +53,13 @@ export const action: ActionFunction = async ({ request }) => {
         { email: ["Invalid email or password"] },
         { status: 400 }
       );
+    } else {
+      return createUserSession({
+        request,
+        userId: user.id,
+        remember,
+      });
     }
-
-    return createUserSession({
-      request,
-      userId: user.id,
-      remember,
-    });
   } else {
     const { fieldErrors } = parseResult.error.flatten();
     return json<ActionData>(fieldErrors, { status: 400 });

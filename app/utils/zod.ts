@@ -15,3 +15,7 @@ export const dateRangeString = z.preprocess((arg) => {
     return { start, end };
   }
 }, z.object({ start: dateString, end: dateString }));
+
+export const inviteCodeSchema = z
+  .string()
+  .uuid("Invite code not in correct format");

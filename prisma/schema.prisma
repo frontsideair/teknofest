@@ -8,21 +8,24 @@ generator client {
 }
 
 model User {
-  id           Int          @id @default(autoincrement())
-  fullName     String       @default("")
-  email        String       @unique
-  role         String       @default("student") // "admin", "advisor", "student"
+  id           Int            @id @default(autoincrement())
+  fullName     String         @default("")
+  email        String         @unique
+  role         String         @default("student") // "admin", "judge", "advisor", "student"
   passwordHash String
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
-  advisorOf    Team[]       @relation("teamAdvisor")
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  advisorOf    Team[]         @relation("teamAdvisor")
   teams        TeamMember[]
+  judgeOf      ContestJudge[]
 }
 
 model Contest {
   id    Int    @id @default(autoincrement())
   name  String @unique
   teams Team[]
+
+  inviteCode String @unique @default(uuid())
 
   applicationStart DateTime
   applicationEnd   DateTime
@@ -41,6 +44,8 @@ model Contest {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  judges ContestJudge[]
 }
 
 model Team {
@@ -73,4 +78,16 @@ model TeamMember {
   updatedAt              DateTime @updatedAt
 
   @@id([teamId, userId])
+}
+
+model ContestJudge {
+  contest   Contest @relation(fields: [contestId], references: [id])
+  contestId Int
+  user      User    @relation(fields: [userId], references: [id])
+  userId    Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@id([contestId, userId])
 }

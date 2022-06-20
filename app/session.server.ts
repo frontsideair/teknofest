@@ -82,6 +82,13 @@ function isPrivileged(userRole: User["role"], targetRole: User["role"]) {
     case "admin": {
       return true;
     }
+    case "judge": {
+      return (
+        targetRole === "judge" ||
+        targetRole === "advisor" ||
+        targetRole === "student"
+      );
+    }
     case "advisor": {
       return targetRole === "advisor" || targetRole === "student";
     }
@@ -94,11 +101,15 @@ function isPrivileged(userRole: User["role"], targetRole: User["role"]) {
   }
 }
 
-export async function requireRole(request: Request, role: User["role"]) {
-  const user = await requireUser(request);
+export async function requireRole(
+  request: Request,
+  role: User["role"],
+  redirectTo?: ReturnType<typeof route>
+) {
+  const user = await requireUser(request, redirectTo);
 
   if (!isPrivileged(user.role, role)) {
-    throw new Response(" You are not authorized to see this page", {
+    throw new Response("You are not authorized to see this page", {
       status: 401,
     });
   } else {

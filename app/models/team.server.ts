@@ -1,5 +1,5 @@
 import type { Team, TeamMember, User } from "@prisma/client";
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { prisma } from "~/db.server";
 import {
@@ -11,9 +11,6 @@ export const nameSchema = z
   .string()
   .min(1, "Name is too short")
   .max(10, "Name is too long");
-export const inviteCodeSchema = z
-  .string()
-  .uuid("Invite code not in correct format");
 export const responsibilitySchema = z.enum(["captain", "pilot", "copilot"]);
 
 export type Responsibility = z.infer<typeof responsibilitySchema>;

@@ -1,4 +1,12 @@
-import { Anchor, Button, Container, Stack, Text, Title } from "@mantine/core";
+import {
+  Anchor,
+  Button,
+  Container,
+  List,
+  ListItem,
+  Text,
+  Title,
+} from "@mantine/core";
 import { Link } from "@remix-run/react";
 import { route } from "routes-gen";
 import type { getContests } from "~/models/contest.server";
@@ -15,23 +23,24 @@ export default function AdminDashboard({ contests }: Props) {
         Create new contest
       </Button>
       <Title order={3}>Contests</Title>
-      <Stack>
+      <List>
         {contests.length ? (
           contests.map((contest) => (
-            <Anchor
-              key={contest.id}
-              component={Link}
-              to={route("/contest/:contestId", {
-                contestId: String(contest.id),
-              })}
-            >
-              {contest.name}
-            </Anchor>
+            <ListItem key={contest.id}>
+              <Anchor
+                component={Link}
+                to={route("/contest/:contestId", {
+                  contestId: String(contest.id),
+                })}
+              >
+                {contest.name}
+              </Anchor>
+            </ListItem>
           ))
         ) : (
           <Text>No contests found!</Text>
         )}
-      </Stack>
+      </List>
     </Container>
   );
 }

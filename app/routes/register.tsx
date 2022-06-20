@@ -145,6 +145,7 @@ export default function Register() {
 
         <RadioGroup label="Role" name="role" defaultValue="advisor">
           <Radio value="advisor" label="Advisor" />
+          <Radio value="judge" label="Judge" />
           <Radio value="student" label="Student" />
         </RadioGroup>
 
