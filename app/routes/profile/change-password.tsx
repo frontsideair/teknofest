@@ -1,11 +1,11 @@
-import { Button, Container, Group, PasswordInput } from "@mantine/core";
+import { Button, Group, PasswordInput, Stack } from "@mantine/core";
 import type {
   ActionFunction,
   LoaderFunction,
   MetaFunction,
 } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
-import { Form, Outlet, useActionData } from "@remix-run/react";
+import { Form, useActionData } from "@remix-run/react";
 import React from "react";
 import { route } from "routes-gen";
 import { z } from "zod";
@@ -68,8 +68,7 @@ export default function Profile() {
   }, [actionData]);
 
   return (
-    <Container size="xs">
-      <Outlet />
+    <Stack>
       <Form method="post">
         <PasswordInput
           label="Old password"
@@ -95,6 +94,6 @@ export default function Profile() {
           <Button type="submit">Save</Button>
         </Group>
       </Form>
-    </Container>
+    </Stack>
   );
 }

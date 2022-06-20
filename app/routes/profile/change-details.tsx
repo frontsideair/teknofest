@@ -1,11 +1,11 @@
-import { Button, Container, Group, TextInput } from "@mantine/core";
+import { Button, Group, Stack, TextInput } from "@mantine/core";
 import type {
   ActionFunction,
   LoaderFunction,
   MetaFunction,
 } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
-import { Form, Outlet, useActionData, useLoaderData } from "@remix-run/react";
+import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import React from "react";
 import { route } from "routes-gen";
 import { z } from "zod";
@@ -71,8 +71,7 @@ export default function Profile() {
   }, [actionData]);
 
   return (
-    <Container size="xs">
-      <Outlet />
+    <Stack>
       <Form method="post">
         <TextInput
           label="Full name"
@@ -89,6 +88,6 @@ export default function Profile() {
           <Button type="submit">Save</Button>
         </Group>
       </Form>
-    </Container>
+    </Stack>
   );
 }

@@ -1,12 +1,14 @@
-import { Anchor, Container, Stack } from "@mantine/core";
+import { Stack } from "@mantine/core";
+import type { User } from "@prisma/client";
 import type { LoaderFunction, MetaFunction } from "@remix-run/node";
-import { Link } from "@remix-run/react";
-import { route } from "routes-gen";
+import { useLoaderData } from "@remix-run/react";
 import { requireUser } from "~/session.server";
+import type { Jsonify } from "~/utils/jsonify";
+
+type LoaderData = User;
 
 export const loader: LoaderFunction = async ({ request }) => {
-  await requireUser(request);
-  return null;
+  return await requireUser(request);
 };
 
 export const meta: MetaFunction = () => {
@@ -16,19 +18,6 @@ export const meta: MetaFunction = () => {
 };
 
 export default function Profile() {
-  return (
-    <Container size="sm">
-      <Stack>
-        <Anchor component={Link} to={route("/profile/change-details")}>
-          Change details
-        </Anchor>
-        <Anchor component={Link} to={route("/profile/change-email")}>
-          Change email
-        </Anchor>
-        <Anchor component={Link} to={route("/profile/change-password")}>
-          Change password
-        </Anchor>
-      </Stack>
-    </Container>
-  );
+  const user = useLoaderData<Jsonify<LoaderData>>();
+  return <Stack>Welcome {user.fullName}!</Stack>;
 }
