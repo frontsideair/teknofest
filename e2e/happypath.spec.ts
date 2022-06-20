@@ -38,6 +38,7 @@ export class TeknofestPage {
       role: "student",
     },
   };
+  readonly contestName = "Teknofest 2022";
   readonly teamName = "BEST TEAM";
 
   userAssertion(user: User) {
@@ -149,6 +150,10 @@ test.describe("Admin flow", () => {
     await tf.main.locator("role=link[name=/create new contest/i]").click();
     await expect(tf.heading).toHaveText(/create new contest/i);
 
+    await tf.main
+      .locator("role=textbox[name=/contest name/i]")
+      .type(tf.contestName);
+
     const now = dayjs();
     await tf.pickDateRange(
       "application and progress report",
@@ -177,7 +182,8 @@ test.describe("Admin flow", () => {
     );
 
     await tf.main.locator("role=button[name=/create/i]").click();
-    await expect(tf.heading).toHaveText(/^contest/i);
+    // TODO: ensure no errors after form submit
+    await expect(tf.heading).toHaveText(tf.contestName);
   });
 });
 

@@ -21,6 +21,7 @@ model User {
 
 model Contest {
   id    Int    @id @default(autoincrement())
+  name  String @unique
   teams Team[]
 
   applicationStart DateTime

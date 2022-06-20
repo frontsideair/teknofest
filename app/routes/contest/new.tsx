@@ -1,16 +1,17 @@
-import { Button, Container, Group, Title } from "@mantine/core";
+import { Button, Container, Group, TextInput, Title } from "@mantine/core";
 import { Form, useActionData } from "@remix-run/react";
 import type { ActionFunction, MetaFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { redirect } from "@remix-run/node";
 import { route } from "routes-gen";
 import { z } from "zod";
-import { createContest } from "~/models/contest.server";
+import { createContest, nameSchema } from "~/models/contest.server";
 import { dateRangeString } from "~/utils/zod";
 import { requireRole } from "~/session.server";
 import DateRangePicker from "~/components/DateRangePicker";
 
 const formSchema = z.object({
+  name: nameSchema,
   applicationDateRange: dateRangeString,
   letterUploadDateRange: dateRangeString,
   designReportDateRange: dateRangeString,
@@ -26,6 +27,7 @@ export const action: ActionFunction = async ({ request }) => {
   const parseResult = formSchema.safeParse(Object.fromEntries(formData));
   if (parseResult.success) {
     const {
+      name,
       applicationDateRange,
       letterUploadDateRange,
       designReportDateRange,
@@ -33,6 +35,7 @@ export const action: ActionFunction = async ({ request }) => {
       finalRaceDateRange,
     } = parseResult.data;
     const { id } = await createContest(
+      name,
       applicationDateRange,
       letterUploadDateRange,
       designReportDateRange,
@@ -62,10 +65,18 @@ export default function NewContest() {
     <Container size="sm">
       <Title order={2}>Create new contest</Title>
       <Form method="post" action="/contest/new">
+        <TextInput
+          label="Contest name"
+          placeholder="Teknofest 2022"
+          required
+          autoFocus
+          name="name"
+          error={actionData?.name}
+        />
+
         <DateRangePicker
           label="Application and progress report"
           required
-          autoFocus
           name="applicationDateRange"
           error={actionData?.applicationDateRange?.[0]}
         />

@@ -50,7 +50,7 @@ export default function ContestPage() {
 
   return (
     <Container size="md">
-      <Title order={2}>Contest {contest.id}</Title>
+      <Title order={2}>{contest.name}</Title>
       <Group noWrap align="flex-start" mt="md">
         <Sidebar>
           {links.map((link, index) => (

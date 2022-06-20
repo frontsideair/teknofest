@@ -4,6 +4,7 @@ import {
   LoadingOverlay,
   Stack,
   Table,
+  Text,
   Title,
 } from "@mantine/core";
 import { useId } from "@mantine/hooks";
@@ -61,20 +62,24 @@ export default function Teams() {
   return (
     <Stack>
       <Title order={3}>Teams</Title>
-      <Table
-        verticalSpacing="sm"
-        sx={{ position: "relative" }}
-        aria-label="Teams"
-      >
-        <LoadingOverlay visible={loading} />
-        <thead>
-          <tr>
-            <th>Team name</th>
-            <th>Advisor</th>
-          </tr>
-        </thead>
-        <tbody>{rows}</tbody>
-      </Table>
+      {rows.length === 0 ? (
+        <Text>No teams</Text>
+      ) : (
+        <Table
+          verticalSpacing="sm"
+          sx={{ position: "relative" }}
+          aria-label="Teams"
+        >
+          <LoadingOverlay visible={loading} />
+          <thead>
+            <tr>
+              <th>Team name</th>
+              <th>Advisor</th>
+            </tr>
+          </thead>
+          <tbody>{rows}</tbody>
+        </Table>
+      )}
     </Stack>
   );
 }

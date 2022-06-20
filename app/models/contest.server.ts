@@ -2,6 +2,9 @@ import type { Contest, User } from "@prisma/client";
 import { partition } from "~/utils/common";
 import { prisma } from "~/db.server";
 import type { DateRange } from "~/utils/date";
+import { z } from "zod";
+
+export const nameSchema = z.string().min(1, "Name is required");
 
 export async function getContestWithApplicationsOpen() {
   const now = new Date();
@@ -37,6 +40,7 @@ export async function getContest(id: Contest["id"]) {
 }
 
 export async function createContest(
+  name: string,
   application: DateRange,
   letterUpload: DateRange,
   designReport: DateRange,
@@ -45,6 +49,7 @@ export async function createContest(
 ) {
   return await prisma.contest.create({
     data: {
+      name: name,
       applicationStart: application.start,
       applicationEnd: application.end,
       letterUploadStart: letterUpload.start,

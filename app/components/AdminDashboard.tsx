@@ -25,7 +25,7 @@ export default function AdminDashboard({ contests }: Props) {
                 contestId: String(contest.id),
               })}
             >
-              {contest.id}
+              {contest.name}
             </Anchor>
           ))
         ) : (
