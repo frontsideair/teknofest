@@ -1,13 +1,21 @@
 import { Anchor, Container, List, ListItem, Text, Title } from "@mantine/core";
-import { Link } from "@remix-run/react";
+import type { User } from "~/models/user.server";
+import { Link, useLoaderData } from "@remix-run/react";
 import { route } from "routes-gen";
-import type { getJudgeContests } from "~/models/contest.server";
+import { getJudgeContests } from "~/models/contest.server";
+import type { Jsonify } from "~/utils/jsonify";
 
-type Props = {
+type LoaderData = {
   contests: Awaited<ReturnType<typeof getJudgeContests>>;
 };
 
-export default function JudgeDashboard({ contests }: Props) {
+export const loader = async (userId: User["id"]) => {
+  return { contests: await getJudgeContests(userId) };
+};
+
+export default function JudgeDashboard() {
+  const { contests } = useLoaderData<Jsonify<LoaderData>>();
+
   return (
     <Container size="sm">
       <Title order={2}>Judge Dashboard</Title>

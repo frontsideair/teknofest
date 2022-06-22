@@ -81,6 +81,7 @@ export default function Profile() {
           name="fullName"
           autoComplete="name"
           error={actionData?.fullName}
+          placeholder="John Doe"
           defaultValue={loaderData.fullName}
         />
 

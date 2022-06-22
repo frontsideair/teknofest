@@ -9,6 +9,7 @@ node_modules
 /prisma/data.db-journal
 /prisma/data.e2e.db
 /prisma/data.e2e.db-journal
+/prisma/dbml/
 
 /app/routes.d.ts
 

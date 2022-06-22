@@ -7,6 +7,10 @@ generator client {
   provider = "prisma-client-js"
 }
 
+generator dbml {
+  provider = "prisma-dbml-generator"
+}
+
 model User {
   id           Int            @id @default(autoincrement())
   fullName     String         @default("")
@@ -24,6 +28,11 @@ model Contest {
   id    Int    @id @default(autoincrement())
   name  String @unique
   teams Team[]
+
+  minTeamSize       Int @default(5)
+  maxTeamSize       Int @default(15)
+  minTeamNameLength Int @default(1)
+  maxTeamNameLength Int @default(10)
 
   inviteCode String @unique @default(uuid())
 

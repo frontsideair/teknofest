@@ -14,6 +14,7 @@ import type { ActionFunction, LoaderFunction } from "@remix-run/server-runtime";
 import { redirect } from "@remix-run/server-runtime";
 import { json } from "@remix-run/server-runtime";
 import { route } from "routes-gen";
+import { Completion } from "~/components/checks/Application";
 import { getContest } from "~/models/contest.server";
 import { deleteTeam } from "~/models/team.server";
 import { requireRole } from "~/session.server";
@@ -75,6 +76,10 @@ export default function Teams() {
       </td>
 
       <td>
+        <Completion contest={contest} team={team} />
+      </td>
+
+      <td>
         <Group spacing={0} position="right">
           <Menu menuButtonLabel="team member actions">
             <Menu.Item
@@ -115,6 +120,7 @@ export default function Teams() {
             <tr>
               <th>Team name</th>
               <th>Advisor</th>
+              <th>Progress</th>
               <th />
             </tr>
           </thead>

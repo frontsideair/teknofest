@@ -121,6 +121,7 @@ export default function Register() {
           name="fullName"
           autoComplete="name"
           error={actionData?.fullName}
+          placeholder="John Doe"
         />
 
         <TextInput
@@ -131,6 +132,7 @@ export default function Register() {
           type="email"
           autoComplete="email"
           error={actionData?.email}
+          placeholder="user@example.com"
         />
 
         <PasswordInput
@@ -141,6 +143,7 @@ export default function Register() {
           name="password"
           autoComplete="new-password"
           error={actionData?.password}
+          placeholder="••••••••••••"
         />
 
         <RadioGroup label="Role" name="role" defaultValue="advisor">

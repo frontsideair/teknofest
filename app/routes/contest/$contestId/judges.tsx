@@ -88,7 +88,7 @@ export default function Judges() {
 
       <td>
         <Group spacing={0} position="right">
-          <Menu menuButtonLabel="team member actions">
+          <Menu menuButtonLabel="judge actions">
             <Menu.Item
               onClick={() => {
                 submit(

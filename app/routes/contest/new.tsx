@@ -1,4 +1,12 @@
-import { Button, Container, Group, TextInput, Title } from "@mantine/core";
+import {
+  Button,
+  Container,
+  Group,
+  InputWrapper,
+  RangeSlider,
+  TextInput,
+  Title,
+} from "@mantine/core";
 import { Form, useActionData } from "@remix-run/react";
 import type { ActionFunction, MetaFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
@@ -6,12 +14,16 @@ import { redirect } from "@remix-run/node";
 import { route } from "routes-gen";
 import { z } from "zod";
 import { createContest, nameSchema } from "~/models/contest.server";
-import { dateRangeString } from "~/utils/zod";
+import { dateRangeString, numericString } from "~/utils/zod";
 import { requireRole } from "~/session.server";
 import DateRangePicker from "~/components/DateRangePicker";
 
 const formSchema = z.object({
   name: nameSchema,
+  teamSize_from: numericString,
+  teamSize_to: numericString,
+  teamNameLength_from: numericString,
+  teamNameLength_to: numericString,
   applicationDateRange: dateRangeString,
   letterUploadDateRange: dateRangeString,
   designReportDateRange: dateRangeString,
@@ -28,6 +40,10 @@ export const action: ActionFunction = async ({ request }) => {
   if (parseResult.success) {
     const {
       name,
+      teamSize_from,
+      teamSize_to,
+      teamNameLength_from,
+      teamNameLength_to,
       applicationDateRange,
       letterUploadDateRange,
       designReportDateRange,
@@ -36,6 +52,8 @@ export const action: ActionFunction = async ({ request }) => {
     } = parseResult.data;
     const { id } = await createContest(
       name,
+      [teamSize_from, teamSize_to],
+      [teamNameLength_from, teamNameLength_to],
       applicationDateRange,
       letterUploadDateRange,
       designReportDateRange,
@@ -74,11 +92,46 @@ export default function NewContest() {
           error={actionData?.name}
         />
 
+        <Group>
+          <InputWrapper
+            label="Team size"
+            description="A team must have number of members within these bounds"
+            required
+          >
+            <RangeSlider
+              name="teamSize"
+              min={1}
+              max={32}
+              minRange={1}
+              defaultValue={[5, 15]}
+              labelAlwaysOn
+              mt={36}
+            />
+          </InputWrapper>
+
+          <InputWrapper
+            label="Team name length"
+            description="Advisor must choose a team name within these bounds"
+            required
+          >
+            <RangeSlider
+              name="teamNameLength"
+              min={1}
+              max={64}
+              minRange={1}
+              defaultValue={[1, 10]}
+              labelAlwaysOn
+              mt={36}
+            />
+          </InputWrapper>
+        </Group>
+
         <DateRangePicker
           label="Application and progress report"
           required
           name="applicationDateRange"
           error={actionData?.applicationDateRange?.[0]}
+          placeholder="June 1, 2022 – June 30, 2022"
         />
 
         <DateRangePicker
@@ -86,6 +139,7 @@ export default function NewContest() {
           required
           name="letterUploadDateRange"
           error={actionData?.letterUploadDateRange?.[0]}
+          placeholder="July 1, 2022 – July 5, 2022"
         />
 
         <DateRangePicker
@@ -93,6 +147,7 @@ export default function NewContest() {
           required
           name="designReportDateRange"
           error={actionData?.designReportDateRange?.[0]}
+          placeholder="July 6, 2022 – July 20, 2022"
         />
 
         <DateRangePicker
@@ -100,6 +155,7 @@ export default function NewContest() {
           required
           name="techControlsDateRange"
           error={actionData?.techControlsDateRange?.[0]}
+          placeholder="July 21, 2022 – July 26, 2022"
         />
 
         <DateRangePicker
@@ -107,6 +163,7 @@ export default function NewContest() {
           required
           name="finalRaceDateRange"
           error={actionData?.finalRaceDateRange?.[0]}
+          placeholder="July 27, 2022 – July 28, 2022"
         />
 
         <Group position="right" mt="md">

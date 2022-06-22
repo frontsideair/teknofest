@@ -1,5 +1,4 @@
 import type { Contest, User } from "@prisma/client";
-import { partition } from "~/utils/common";
 import { prisma } from "~/db.server";
 import type { DateRange } from "~/utils/date";
 import { z } from "zod";
@@ -95,14 +94,18 @@ export async function getContest(id: Contest["id"]) {
   return await prisma.contest.findUnique({
     where: { id },
     include: {
-      teams: { include: { advisor: true } },
+      teams: { include: { advisor: true, members: true } },
       judges: { include: { user: true } },
     },
   });
 }
 
+type Range = [number, number];
+
 export async function createContest(
   name: string,
+  [minTeamSize, maxTeamSize]: Range,
+  [minTeamNameLength, maxTeamNameLength]: Range,
   application: DateRange,
   letterUpload: DateRange,
   designReport: DateRange,
@@ -111,7 +114,11 @@ export async function createContest(
 ) {
   return await prisma.contest.create({
     data: {
-      name: name,
+      name,
+      minTeamSize,
+      maxTeamSize,
+      minTeamNameLength,
+      maxTeamNameLength,
       applicationStart: application.start,
       applicationEnd: application.end,
       letterUploadStart: letterUpload.start,
@@ -128,6 +135,9 @@ export async function createContest(
 
 export async function updateContest(
   id: Contest["id"],
+  name: string,
+  [minTeamSize, maxTeamSize]: Range,
+  [minTeamNameLength, maxTeamNameLength]: Range,
   application: DateRange,
   letterUpload: DateRange,
   designReport: DateRange,
@@ -137,6 +147,11 @@ export async function updateContest(
   return await prisma.contest.update({
     where: { id },
     data: {
+      name,
+      minTeamSize,
+      maxTeamSize,
+      minTeamNameLength,
+      maxTeamNameLength,
       applicationStart: application.start,
       applicationEnd: application.end,
       letterUploadStart: letterUpload.start,
@@ -151,12 +166,11 @@ export async function updateContest(
   });
 }
 
-export async function getAdvisorContests(advisorId: User["id"]) {
-  const currentContest = await getCurrentContest();
-  const contests = await prisma.contest.findMany({
-    where: { teams: { some: { advisorId } } },
-    include: { teams: true },
+export async function getAdvisorTeams(advisorId: User["id"]) {
+  return await prisma.team.findMany({
+    where: { advisorId },
+    include: {
+      contest: { select: { applicationStart: true, finalRaceEnd: true } },
+    },
   });
-
-  return partition(contests, (contest) => contest.id === currentContest?.id);
 }

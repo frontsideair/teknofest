@@ -7,15 +7,22 @@ import {
   Text,
   Title,
 } from "@mantine/core";
-import { Link } from "@remix-run/react";
+import { Link, useLoaderData } from "@remix-run/react";
 import { route } from "routes-gen";
-import type { getContests } from "~/models/contest.server";
+import { getContests } from "~/models/contest.server";
+import type { Jsonify } from "~/utils/jsonify";
 
-type Props = {
+type LoaderData = {
   contests: Awaited<ReturnType<typeof getContests>>;
 };
 
-export default function AdminDashboard({ contests }: Props) {
+export const loader = async () => {
+  return { contests: await getContests() };
+};
+
+export default function AdminDashboard() {
+  const { contests } = useLoaderData<Jsonify<LoaderData>>();
+
   return (
     <Container size="sm">
       <Title order={2}>Admin Dashboard</Title>
