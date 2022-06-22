@@ -1,5 +1,4 @@
 import type { Contest, User } from "@prisma/client";
-import { partition } from "~/utils/common";
 import { prisma } from "~/db.server";
 import type { DateRange } from "~/utils/date";
 import { z } from "zod";
@@ -167,12 +166,11 @@ export async function updateContest(
   });
 }
 
-export async function getAdvisorContests(advisorId: User["id"]) {
-  const currentContest = await getCurrentContest();
-  const contests = await prisma.contest.findMany({
-    where: { teams: { some: { advisorId } } },
-    include: { teams: true },
+export async function getAdvisorTeams(advisorId: User["id"]) {
+  return await prisma.team.findMany({
+    where: { advisorId },
+    include: {
+      contest: { select: { applicationStart: true, finalRaceEnd: true } },
+    },
   });
-
-  return partition(contests, (contest) => contest.id === currentContest?.id);
 }

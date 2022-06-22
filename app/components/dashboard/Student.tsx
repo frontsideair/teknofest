@@ -1,11 +1,21 @@
 import { Box, Container, Stack, Title } from "@mantine/core";
-import type { getTeams } from "~/models/team.server";
+import { useLoaderData } from "@remix-run/react";
+import { getTeams } from "~/models/team.server";
+import type { User } from "~/models/user.server";
+import type { Jsonify } from "~/utils/jsonify";
 
-type Props = {
+type LoaderData = {
   teams: Awaited<ReturnType<typeof getTeams>>;
 };
 
-export default function AdvisorDashboard({ teams }: Props) {
+export const loader = async (userId: User["id"]) => {
+  const teams = await getTeams(userId);
+  return { teams };
+};
+
+export default function AdvisorDashboard() {
+  const { teams } = useLoaderData<Jsonify<LoaderData>>();
+
   return (
     <Container size="sm">
       <Title order={2}>Student Dashboard</Title>

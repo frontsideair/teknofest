@@ -7,18 +7,36 @@ import {
   Text,
   Title,
 } from "@mantine/core";
-import { Link } from "@remix-run/react";
+import { Link, useLoaderData } from "@remix-run/react";
 import { route } from "routes-gen";
-import type { getAdvisorContests } from "~/models/contest.server";
+import {
+  getAdvisorTeams,
+  getContestWithApplicationsOpen,
+} from "~/models/contest.server";
+import type { User } from "~/models/user.server";
+import { partition } from "~/utils/common";
+import type { Jsonify } from "~/utils/jsonify";
 
-type Props = {
-  contests: Awaited<ReturnType<typeof getAdvisorContests>>;
+type LoaderData = {
+  teams: Awaited<ReturnType<typeof getAdvisorTeams>>;
+  applicationsOpen: boolean;
 };
 
-export default function AdvisorDashboard({ contests }: Props) {
-  const [[currentContest], pastContests] = contests;
-  const currentTeam = currentContest?.teams[0];
-  const pastTeams = pastContests.map((contest) => contest.teams).flat();
+export const loader = async (userId: User["id"]) => {
+  const teams = await getAdvisorTeams(userId);
+  const currentContest = await getContestWithApplicationsOpen();
+  return { teams, applicationsOpen: !!currentContest };
+};
+
+export default function AdvisorDashboard() {
+  const { teams, applicationsOpen } = useLoaderData<Jsonify<LoaderData>>();
+  const now = new Date();
+  const [[currentTeam], pastTeams] = partition(
+    teams,
+    (team) =>
+      new Date(team.contest.applicationStart) <= now &&
+      now < new Date(team.contest.finalRaceEnd)
+  );
 
   return (
     <Container size="sm">
@@ -35,13 +53,15 @@ export default function AdvisorDashboard({ contests }: Props) {
             View team
           </Button>
         </Card>
-      ) : (
+      ) : applicationsOpen ? (
         <Text>
           No team for the current contest.{" "}
           <Anchor component={Link} to={route("/team/new")}>
             Create new team?
           </Anchor>
         </Text>
+      ) : (
+        <Text>No team for current contest.</Text>
       )}
       {pastTeams.length > 0 && (
         <>
