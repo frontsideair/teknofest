@@ -29,6 +29,11 @@ model Contest {
   name  String @unique
   teams Team[]
 
+  minTeamSize       Int @default(5)
+  maxTeamSize       Int @default(15)
+  minTeamNameLength Int @default(1)
+  maxTeamNameLength Int @default(10)
+
   inviteCode String @unique @default(uuid())
 
   applicationStart DateTime

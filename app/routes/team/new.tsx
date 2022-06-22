@@ -6,17 +6,29 @@ import type {
 } from "@remix-run/node";
 import { redirect } from "@remix-run/node";
 import { json } from "@remix-run/node";
-import { Form, useActionData } from "@remix-run/react";
+import { Form, useActionData, useLoaderData } from "@remix-run/react";
 
 import { requireRole, requireUserId } from "~/session.server";
 import { route } from "routes-gen";
 import { Button, Container, Group, TextInput, Title } from "@mantine/core";
 import { z } from "zod";
 import { createTeam, nameSchema } from "~/models/team.server";
+import { getContestWithApplicationsOpen } from "~/models/contest.server";
+
+type LoaderData = {
+  minTeamNameLength: number;
+  maxTeamNameLength: number;
+};
 
 export const loader: LoaderFunction = async ({ request }) => {
   await requireRole(request, "advisor");
-  return null;
+  const contest = await getContestWithApplicationsOpen();
+  if (!contest) {
+    throw new Response("No contest with applications open", { status: 404 });
+  } else {
+    const { minTeamNameLength, maxTeamNameLength } = contest;
+    return json({ minTeamNameLength, maxTeamNameLength });
+  }
 };
 
 const formSchema = z.object({
@@ -32,17 +44,30 @@ export const action: ActionFunction = async ({ request }) => {
 
   if (parseResult.success) {
     const name = parseResult.data.name;
+    const contest = await getContestWithApplicationsOpen();
 
-    try {
-      const team = await createTeam(name, userId);
+    if (contest) {
+      const { minTeamNameLength, maxTeamNameLength } = contest;
 
-      return redirect(route("/team/:teamId", { teamId: String(team.id) }));
-    } catch (error) {
-      console.error(error);
-      return json<ActionData>(
-        { name: ["Name is not unique"] },
-        { status: 400 }
-      );
+      if (name.length < minTeamNameLength) {
+        return json<ActionData>({ name: ["Name too short"] }, { status: 400 });
+      } else if (name.length > maxTeamNameLength) {
+        return json<ActionData>({ name: ["Name too long"] }, { status: 400 });
+      } else {
+        try {
+          const team = await createTeam(name, userId);
+
+          return redirect(route("/team/:teamId", { teamId: String(team.id) }));
+        } catch (error) {
+          console.error(error);
+          return json<ActionData>(
+            { name: ["Name is not unique"] },
+            { status: 400 }
+          );
+        }
+      }
+    } else {
+      throw new Response("No contest with applications open", { status: 404 });
     }
   } else {
     const { fieldErrors } = parseResult.error.flatten();
@@ -57,6 +82,7 @@ export const meta: MetaFunction = () => {
 };
 
 export default function NewTeam() {
+  const { minTeamNameLength, maxTeamNameLength } = useLoaderData<LoaderData>();
   const actionData = useActionData<ActionData>();
   const nameRef = React.useRef<HTMLInputElement>(null);
 
@@ -72,7 +98,9 @@ export default function NewTeam() {
       <Form method="post">
         <TextInput
           label="Team name"
-          description="Maximum 10 characters"
+          description={`Should be between ${minTeamNameLength} and ${maxTeamNameLength} characters`}
+          minLength={minTeamNameLength}
+          maxLength={maxTeamNameLength}
           ref={nameRef}
           required
           autoFocus

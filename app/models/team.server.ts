@@ -7,10 +7,7 @@ import {
   getContestWithApplicationsOpen,
 } from "./contest.server";
 
-export const nameSchema = z
-  .string()
-  .min(1, "Name is too short")
-  .max(10, "Name is too long");
+export const nameSchema = z.string().min(1, "Name is too short");
 export const responsibilitySchema = z.enum(["captain", "pilot", "copilot"]);
 
 export type Responsibility = z.infer<typeof responsibilitySchema>;
@@ -40,7 +37,10 @@ export async function getTeams(memberId: User["id"]) {
 export async function getTeamByInvite(inviteCode: Team["inviteCode"]) {
   return await prisma.team.findUnique({
     where: { inviteCode },
-    include: { members: { include: { user: true } } },
+    include: {
+      members: { include: { user: true } },
+      contest: { select: { maxTeamSize: true } },
+    },
   });
 }
 
@@ -52,7 +52,7 @@ export function ensureCanJoinTeam(user: User, team: TeamWithMembers) {
   // user is already member of team
   const isMemberOfTeam = team.members.some(({ userId }) => userId === user.id);
   // team has no open slots (include advisor)
-  const teamIsFull = team.members.length >= 14;
+  const teamIsFull = team.members.length >= team.contest.maxTeamSize - 1;
   // team has coadvisor slot
   const teamHasCoadvisorSlot = team.members.every(
     ({ user }) => user.role !== "advisor"

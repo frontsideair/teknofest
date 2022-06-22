@@ -101,8 +101,12 @@ export async function getContest(id: Contest["id"]) {
   });
 }
 
+type Range = [number, number];
+
 export async function createContest(
   name: string,
+  [minTeamSize, maxTeamSize]: Range,
+  [minTeamNameLength, maxTeamNameLength]: Range,
   application: DateRange,
   letterUpload: DateRange,
   designReport: DateRange,
@@ -111,7 +115,11 @@ export async function createContest(
 ) {
   return await prisma.contest.create({
     data: {
-      name: name,
+      name,
+      minTeamSize,
+      maxTeamSize,
+      minTeamNameLength,
+      maxTeamNameLength,
       applicationStart: application.start,
       applicationEnd: application.end,
       letterUploadStart: letterUpload.start,
@@ -128,6 +136,9 @@ export async function createContest(
 
 export async function updateContest(
   id: Contest["id"],
+  name: string,
+  [minTeamSize, maxTeamSize]: Range,
+  [minTeamNameLength, maxTeamNameLength]: Range,
   application: DateRange,
   letterUpload: DateRange,
   designReport: DateRange,
@@ -137,6 +148,11 @@ export async function updateContest(
   return await prisma.contest.update({
     where: { id },
     data: {
+      name,
+      minTeamSize,
+      maxTeamSize,
+      minTeamNameLength,
+      maxTeamNameLength,
       applicationStart: application.start,
       applicationEnd: application.end,
       letterUploadStart: letterUpload.start,
