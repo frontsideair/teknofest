@@ -8,31 +8,86 @@ generator client {
 }
 
 model User {
-  id    String @id @default(cuid())
-  email String @unique
+  id           Int            @id @default(autoincrement())
+  fullName     String         @default("")
+  email        String         @unique
+  role         String         @default("student") // "admin", "judge", "advisor", "student"
+  passwordHash String
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  advisorOf    Team[]         @relation("teamAdvisor")
+  teams        TeamMember[]
+  judgeOf      ContestJudge[]
+}
+
+model Contest {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  teams Team[]
+
+  inviteCode String @unique @default(uuid())
+
+  applicationStart DateTime
+  applicationEnd   DateTime
+
+  letterUploadStart DateTime
+  letterUploadEnd   DateTime
+
+  designReportStart DateTime
+  designReportEnd   DateTime
+
+  techControlsStart DateTime
+  techControlsEnd   DateTime
+
+  finalRaceStart DateTime
+  finalRaceEnd   DateTime
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  password Password?
-  notes    Note[]
+  judges ContestJudge[]
 }
 
-model Password {
-  hash String
+model Team {
+  id         Int          @id @default(autoincrement())
+  name       String
+  contestId  Int
+  contest    Contest      @relation(fields: [contestId], references: [id])
+  advisor    User         @relation(name: "teamAdvisor", fields: [advisorId], references: [id])
+  advisorId  Int
+  inviteCode String       @unique @default(uuid())
+  members    TeamMember[]
 
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  userId String @unique
-}
-
-model Note {
-  id    String @id @default(cuid())
-  title String
-  body  String
+  progressReportPath String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  userId String
+  @@unique([name, contestId])
+  @@unique([advisorId, contestId])
+}
+
+model TeamMember {
+  team                   Team     @relation(fields: [teamId], references: [id])
+  teamId                 Int
+  user                   User     @relation(fields: [userId], references: [id])
+  userId                 Int
+  isCaptain              Boolean  @default(false)
+  pilotingResponsibility String? // "pilot", "copilot", null
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  @@id([teamId, userId])
+}
+
+model ContestJudge {
+  contest   Contest @relation(fields: [contestId], references: [id])
+  contestId Int
+  user      User    @relation(fields: [userId], references: [id])
+  userId    Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@id([contestId, userId])
 }

@@ -1,37 +1,44 @@
-import { createCookieSessionStorage, redirect } from "@remix-run/node";
-import invariant from "tiny-invariant";
+import {
+  createCookieSessionStorage,
+  redirect,
+  Response,
+} from "@remix-run/node";
+import { route } from "routes-gen";
+import { z } from "zod";
 
 import type { User } from "~/models/user.server";
 import { getUserById } from "~/models/user.server";
 
-invariant(process.env.SESSION_SECRET, "SESSION_SECRET must be set");
+const SESSION_SECRET = z
+  .string({ required_error: "SESSION_SECRET must be set" })
+  .parse(process.env.SESSION_SECRET);
 
 export const sessionStorage = createCookieSessionStorage({
   cookie: {
     name: "__session",
     httpOnly: true,
-    maxAge: 0,
     path: "/",
     sameSite: "lax",
-    secrets: [process.env.SESSION_SECRET],
+    secrets: [SESSION_SECRET],
     secure: process.env.NODE_ENV === "production",
   },
 });
 
 const USER_SESSION_KEY = "userId";
+const REDIRECT_BACK_KEY = "redirectBack";
 
 export async function getSession(request: Request) {
   const cookie = request.headers.get("Cookie");
   return sessionStorage.getSession(cookie);
 }
 
-export async function getUserId(request: Request): Promise<string | undefined> {
+export async function getUserId(request: Request) {
   const session = await getSession(request);
-  const userId = session.get(USER_SESSION_KEY);
+  const userId = Number(session.get(USER_SESSION_KEY)) || undefined;
   return userId;
 }
 
-export async function getUser(request: Request): Promise<null | User> {
+export async function getUser(request: Request) {
   const userId = await getUserId(request);
   if (userId === undefined) return null;
 
@@ -43,18 +50,26 @@ export async function getUser(request: Request): Promise<null | User> {
 
 export async function requireUserId(
   request: Request,
-  redirectTo: string = new URL(request.url).pathname
-): Promise<string> {
+  redirectTo: ReturnType<typeof route> = route("/login")
+) {
   const userId = await getUserId(request);
   if (!userId) {
-    const searchParams = new URLSearchParams([["redirectTo", redirectTo]]);
-    throw redirect(`/login?${searchParams}`);
+    const session = await sessionStorage.getSession();
+    session.flash(REDIRECT_BACK_KEY, request.url);
+    throw redirect(redirectTo, {
+      headers: {
+        "Set-Cookie": await sessionStorage.commitSession(session),
+      },
+    });
   }
   return userId;
 }
 
-export async function requireUser(request: Request) {
-  const userId = await requireUserId(request);
+export async function requireUser(
+  request: Request,
+  redirectTo: ReturnType<typeof route> = route("/login")
+) {
+  const userId = await requireUserId(request, redirectTo);
 
   const user = await getUserById(userId);
   if (user) return user;
@@ -62,20 +77,59 @@ export async function requireUser(request: Request) {
   throw await logout(request);
 }
 
+function isPrivileged(userRole: User["role"], targetRole: User["role"]) {
+  switch (userRole) {
+    case "admin": {
+      return true;
+    }
+    case "judge": {
+      return (
+        targetRole === "judge" ||
+        targetRole === "advisor" ||
+        targetRole === "student"
+      );
+    }
+    case "advisor": {
+      return targetRole === "advisor" || targetRole === "student";
+    }
+    case "student": {
+      return targetRole === "student";
+    }
+    default: {
+      return false;
+    }
+  }
+}
+
+export async function requireRole(
+  request: Request,
+  role: User["role"],
+  redirectTo?: ReturnType<typeof route>
+) {
+  const user = await requireUser(request, redirectTo);
+
+  if (!isPrivileged(user.role, role)) {
+    throw new Response("You are not authorized to see this page", {
+      status: 401,
+    });
+  } else {
+    return user;
+  }
+}
+
 export async function createUserSession({
   request,
   userId,
   remember,
-  redirectTo,
 }: {
   request: Request;
-  userId: string;
+  userId: User["id"];
   remember: boolean;
-  redirectTo: string;
 }) {
   const session = await getSession(request);
-  session.set(USER_SESSION_KEY, userId);
-  return redirect(redirectTo, {
+  session.set(USER_SESSION_KEY, String(userId));
+  const redirectBack: string = session.get(REDIRECT_BACK_KEY);
+  return redirect(redirectBack ?? route("/dashboard"), {
     headers: {
       "Set-Cookie": await sessionStorage.commitSession(session, {
         maxAge: remember
@@ -88,9 +142,10 @@ export async function createUserSession({
 
 export async function logout(request: Request) {
   const session = await getSession(request);
-  return redirect("/", {
+  session.unset(USER_SESSION_KEY);
+  return redirect(route("/"), {
     headers: {
-      "Set-Cookie": await sessionStorage.destroySession(session),
+      "Set-Cookie": await sessionStorage.commitSession(session),
     },
   });
 }

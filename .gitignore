@@ -3,10 +3,15 @@ node_modules
 /build
 /public/build
 .env
+/uploads
 
-/cypress/screenshots
-/cypress/videos
 /prisma/data.db
 /prisma/data.db-journal
+/prisma/data.e2e.db
+/prisma/data.e2e.db-journal
 
-/app/styles/tailwind.css
+/app/routes.d.ts
+
+/test-results/
+/playwright-report/
+/playwright/.cache/

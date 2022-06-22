@@ -31,9 +31,6 @@ WORKDIR /myapp
 
 COPY --from=deps /myapp/node_modules /myapp/node_modules
 
-ADD prisma .
-RUN npx prisma generate
-
 ADD . .
 RUN npm run build
 
@@ -41,6 +38,7 @@ RUN npm run build
 FROM base
 
 ENV DATABASE_URL=file:/data/sqlite.db
+ENV UPLOAD_DIR=/data/uploads
 ENV PORT="8080"
 ENV NODE_ENV="production"
 
@@ -54,6 +52,8 @@ COPY --from=build /myapp/node_modules/.prisma /myapp/node_modules/.prisma
 
 COPY --from=build /myapp/build /myapp/build
 COPY --from=build /myapp/public /myapp/public
-ADD . .
+COPY --from=build /myapp/package.json /myapp/package.json
+COPY --from=build /myapp/start.sh /myapp/start.sh
+COPY --from=build /myapp/prisma /myapp/prisma
 
-CMD ["npm", "start"]
+ENTRYPOINT ["./start.sh"]
