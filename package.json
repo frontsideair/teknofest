@@ -49,11 +49,12 @@
     "@remix-run/server-runtime": "^1.4.1",
     "bcryptjs": "^2.4.3",
     "dayjs": "^1.11.2",
-    "esbuild-register": "^3.3.3",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "routes-gen": "^0.5.0",
     "tabler-icons-react": "^1.48.1",
+    "ts-node": "^10.8.1",
+    "tsconfig-paths": "^4.0.0",
     "zod": "^3.14.4"
   },
   "devDependencies": {
@@ -87,6 +88,6 @@
     "node": ">=14"
   },
   "prisma": {
-    "seed": "node --require esbuild-register prisma/seed.ts"
+    "seed": "ts-node --require tsconfig-paths/register prisma/seed.ts"
   }
 }
