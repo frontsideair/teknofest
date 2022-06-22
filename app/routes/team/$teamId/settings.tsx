@@ -71,6 +71,7 @@ export default function Settings() {
             name="name"
             error={actionData?.name}
             defaultValue={team.name}
+            placeholder="My Team"
           />
           <Group position="right" mt="md">
             <Button type="submit">Save</Button>

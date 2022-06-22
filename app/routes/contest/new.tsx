@@ -131,6 +131,7 @@ export default function NewContest() {
           required
           name="applicationDateRange"
           error={actionData?.applicationDateRange?.[0]}
+          placeholder="June 1, 2022 – June 30, 2022"
         />
 
         <DateRangePicker
@@ -138,6 +139,7 @@ export default function NewContest() {
           required
           name="letterUploadDateRange"
           error={actionData?.letterUploadDateRange?.[0]}
+          placeholder="July 1, 2022 – July 5, 2022"
         />
 
         <DateRangePicker
@@ -145,6 +147,7 @@ export default function NewContest() {
           required
           name="designReportDateRange"
           error={actionData?.designReportDateRange?.[0]}
+          placeholder="July 6, 2022 – July 20, 2022"
         />
 
         <DateRangePicker
@@ -152,6 +155,7 @@ export default function NewContest() {
           required
           name="techControlsDateRange"
           error={actionData?.techControlsDateRange?.[0]}
+          placeholder="July 21, 2022 – July 26, 2022"
         />
 
         <DateRangePicker
@@ -159,6 +163,7 @@ export default function NewContest() {
           required
           name="finalRaceDateRange"
           error={actionData?.finalRaceDateRange?.[0]}
+          placeholder="July 27, 2022 – July 28, 2022"
         />
 
         <Group position="right" mt="md">

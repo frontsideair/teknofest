@@ -78,6 +78,7 @@ export default function Profile() {
           name="oldPassword"
           autoComplete="current-password"
           error={actionData?.oldPassword}
+          placeholder="••••••••••••"
         />
 
         <PasswordInput
@@ -88,6 +89,7 @@ export default function Profile() {
           name="newPassword"
           autoComplete="new-password"
           error={actionData?.newPassword}
+          placeholder="••••••••••••"
         />
 
         <Group position="right" mt="md">

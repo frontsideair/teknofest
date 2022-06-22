@@ -106,6 +106,7 @@ export default function NewTeam() {
           autoFocus
           name="name"
           error={actionData?.name}
+          placeholder="My Team"
         />
 
         <Group position="right" mt="md">

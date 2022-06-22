@@ -79,6 +79,7 @@ export default function Profile() {
           type="email"
           autoComplete="email"
           error={actionData?.email}
+          placeholder="user@example.com"
         />
 
         <PasswordInput
@@ -89,6 +90,7 @@ export default function Profile() {
           name="password"
           autoComplete="current-password"
           error={actionData?.password}
+          placeholder="••••••••••••"
         />
 
         <Group position="right" mt="md">

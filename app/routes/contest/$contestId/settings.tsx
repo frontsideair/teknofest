@@ -149,6 +149,7 @@ export default function Settings() {
           required
           name="applicationDateRange"
           error={actionData?.applicationDateRange?.[0]}
+          placeholder="June 1, 2022 – June 30, 2022"
           defaultValue={[
             new Date(contest?.applicationStart),
             new Date(contest?.applicationEnd),
@@ -160,6 +161,7 @@ export default function Settings() {
           required
           name="letterUploadDateRange"
           error={actionData?.letterUploadDateRange?.[0]}
+          placeholder="July 1, 2022 – July 5, 2022"
           defaultValue={[
             new Date(contest?.letterUploadStart),
             new Date(contest?.letterUploadEnd),
@@ -171,6 +173,7 @@ export default function Settings() {
           required
           name="designReportDateRange"
           error={actionData?.designReportDateRange?.[0]}
+          placeholder="July 6, 2022 – July 20, 2022"
           defaultValue={[
             new Date(contest?.designReportStart),
             new Date(contest?.designReportEnd),
@@ -182,6 +185,7 @@ export default function Settings() {
           required
           name="techControlsDateRange"
           error={actionData?.techControlsDateRange?.[0]}
+          placeholder="July 21, 2022 – July 26, 2022"
           defaultValue={[
             new Date(contest?.techControlsStart),
             new Date(contest?.techControlsEnd),
@@ -193,6 +197,7 @@ export default function Settings() {
           required
           name="finalRaceDateRange"
           error={actionData?.finalRaceDateRange?.[0]}
+          placeholder="July 27, 2022 – July 28, 2022"
           defaultValue={[
             new Date(contest?.finalRaceStart),
             new Date(contest?.finalRaceEnd),

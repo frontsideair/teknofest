@@ -98,6 +98,7 @@ export default function LoginPage() {
           type="email"
           autoComplete="email"
           error={actionData?.email}
+          placeholder="user@example.com"
         />
 
         <PasswordInput
@@ -108,6 +109,7 @@ export default function LoginPage() {
           name="password"
           autoComplete="current-password"
           error={actionData?.password}
+          placeholder="••••••••••••"
         />
 
         <Group position="apart" mt="md">
