@@ -2,6 +2,7 @@ import type { Team, TeamMember, User } from "@prisma/client";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { prisma } from "~/db.server";
+import { teamSize } from "~/utils/team";
 import {
   ensureCurrentContest,
   getContestWithApplicationsOpen,
@@ -52,7 +53,7 @@ export function ensureCanJoinTeam(user: User, team: TeamWithMembers) {
   // user is already member of team
   const isMemberOfTeam = team.members.some(({ userId }) => userId === user.id);
   // team has no open slots (include advisor)
-  const teamIsFull = team.members.length >= team.contest.maxTeamSize - 1;
+  const teamIsFull = teamSize(team.members) >= team.contest.maxTeamSize;
   // team has coadvisor slot
   const teamHasCoadvisorSlot = team.members.every(
     ({ user }) => user.role !== "advisor"

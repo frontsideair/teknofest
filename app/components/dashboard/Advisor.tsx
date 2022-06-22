@@ -25,7 +25,7 @@ type LoaderData = {
 export const loader = async (userId: User["id"]) => {
   const teams = await getAdvisorTeams(userId);
   const currentContest = await getContestWithApplicationsOpen();
-  return { teams, applicationsOpen: !!currentContest };
+  return { teams, applicationsOpen: Boolean(currentContest) };
 };
 
 export default function AdvisorDashboard() {

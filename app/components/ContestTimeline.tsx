@@ -1,17 +1,23 @@
 import { Text, Timeline } from "@mantine/core";
 import type { Contest } from "@prisma/client";
+import type { getTeam } from "~/models/team.server";
 import { format } from "~/utils/date";
 import type { Jsonify } from "~/utils/jsonify";
+import ApplicationChecks from "./checks/Application";
 
-type Props = { contest: Jsonify<Contest> };
+type Props = {
+  contest: Jsonify<Contest>;
+  team?: Jsonify<NonNullable<Awaited<ReturnType<typeof getTeam>>>>;
+};
 
-export default function ContestTimeline({ contest }: Props) {
+export default function ContestTimeline({ contest, team }: Props) {
   const periods = [
     {
       key: "application",
       title: "Application and progress report",
       description:
         "Advisors can apply only during this period and progress reports must be submitted by the end of this period.",
+      checks: team && <ApplicationChecks team={team} contest={contest} />,
       start: contest.applicationStart,
       end: contest.applicationEnd,
     },
@@ -58,6 +64,7 @@ export default function ContestTimeline({ contest }: Props) {
         <Timeline.Item key={period.key} title={period.title}>
           <Text color="dimmed" size="sm">
             {period.description}
+            {period.checks}
           </Text>
           <Text size="xs">
             {format(new Date(period.start))} - {format(new Date(period.end))}

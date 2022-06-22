@@ -1,5 +1,4 @@
 import { Stack, Title } from "@mantine/core";
-import type { Contest } from "@prisma/client";
 import { useLoaderData } from "@remix-run/react";
 import type { LoaderFunction } from "@remix-run/server-runtime";
 import { json } from "@remix-run/server-runtime";
@@ -9,25 +8,25 @@ import { requireRole } from "~/session.server";
 import type { Jsonify } from "~/utils/jsonify";
 import { numericString } from "~/utils/zod";
 
-type LoaderData = Contest;
+type LoaderData = { team: NonNullable<Awaited<ReturnType<typeof getTeam>>> };
 
 export const loader: LoaderFunction = async ({ request, params }) => {
   const teamId = numericString.parse(params.teamId);
   await requireRole(request, "advisor");
   const team = await getTeam(teamId);
   if (team) {
-    return json<LoaderData>(team.contest);
+    return json<LoaderData>({ team });
   } else {
     throw new Response("Not found", { status: 404 });
   }
 };
 
 export default function Overview() {
-  const contest = useLoaderData<Jsonify<LoaderData>>();
+  const { team } = useLoaderData<Jsonify<LoaderData>>();
   return (
     <Stack>
       <Title order={3}>Overview</Title>
-      <ContestTimeline contest={contest} />
+      <ContestTimeline contest={team.contest} team={team} />
     </Stack>
   );
 }

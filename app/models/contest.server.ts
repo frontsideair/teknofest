@@ -94,7 +94,7 @@ export async function getContest(id: Contest["id"]) {
   return await prisma.contest.findUnique({
     where: { id },
     include: {
-      teams: { include: { advisor: true } },
+      teams: { include: { advisor: true, members: true } },
       judges: { include: { user: true } },
     },
   });
