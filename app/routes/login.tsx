@@ -22,6 +22,12 @@ import {
   Title,
 } from "@mantine/core";
 import { z } from "zod";
+import {
+  errorMessagesForSchema,
+  InputError,
+  inputFromForm,
+  makeDomainFunction,
+} from "remix-domains";
 
 export const loader: LoaderFunction = async ({ request }) => {
   const userId = await getUserId(request);
@@ -37,32 +43,31 @@ const formSchema = z.object({
 
 type ActionData = z.inferFlattenedErrors<typeof formSchema>["fieldErrors"];
 
-export const action: ActionFunction = async ({ request }) => {
-  const formData = await request.formData();
-  const parseResult = formSchema.safeParse(Object.fromEntries(formData));
-
-  if (parseResult.success) {
-    const email = parseResult.data.email;
-    const password = parseResult.data.password;
-    const remember = parseResult.data.remember === "on";
-
+const mutation = makeDomainFunction(formSchema)(
+  async ({ email, password, remember }) => {
     const user = await verifyLogin(email, password);
-
     if (!user) {
-      return json<ActionData>(
-        { email: ["Invalid email or password"] },
-        { status: 400 }
-      );
+      throw new InputError("Invalid email or password", "email");
     } else {
-      return createUserSession({
-        request,
-        userId: user.id,
-        remember,
-      });
+      return { user, remember };
     }
+  }
+);
+
+export const action: ActionFunction = async ({ request }) => {
+  const result = await mutation(await inputFromForm(request));
+
+  if (result.success) {
+    return createUserSession({
+      request,
+      userId: result.data.user.id,
+      remember: result.data.remember === "on",
+    });
   } else {
-    const { fieldErrors } = parseResult.error.flatten();
-    return json<ActionData>(fieldErrors, { status: 400 });
+    return json<ActionData>(
+      errorMessagesForSchema(result.inputErrors, formSchema),
+      { status: 400 }
+    );
   }
 };
 

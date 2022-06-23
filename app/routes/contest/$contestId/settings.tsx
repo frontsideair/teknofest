@@ -18,6 +18,11 @@ import { getContest, nameSchema, updateContest } from "~/models/contest.server";
 import { requireRole } from "~/session.server";
 import type { Jsonify } from "~/utils/jsonify";
 import { dateRangeString, numericString } from "~/utils/zod";
+import {
+  errorMessagesForSchema,
+  inputFromForm,
+  makeDomainFunction,
+} from "remix-domains";
 
 type LoaderData = {
   contest: NonNullable<Awaited<ReturnType<typeof getContest>>>;
@@ -49,44 +54,37 @@ const formSchema = z.object({
 
 type ActionData = z.inferFlattenedErrors<typeof formSchema>["fieldErrors"];
 
+const mutation = makeDomainFunction(
+  formSchema,
+  numericString
+)(async (data, contestId) => {
+  const { id } = await updateContest(
+    contestId,
+    data.name,
+    [data.teamSize_from, data.teamSize_to],
+    [data.teamNameLength_from, data.teamNameLength_to],
+    data.applicationDateRange,
+    data.letterUploadDateRange,
+    data.designReportDateRange,
+    data.techControlsDateRange,
+    data.finalRaceDateRange
+  );
+  return id;
+});
+
 export const action: ActionFunction = async ({ params, request }) => {
-  const contestId = numericString.parse(params.contestId);
   await requireRole(request, "admin");
-  const formData = await request.formData();
-  const parseResult = formSchema.safeParse(Object.fromEntries(formData));
-  if (parseResult.success) {
-    const {
-      name,
-      teamSize_from,
-      teamSize_to,
-      teamNameLength_from,
-      teamNameLength_to,
-      applicationDateRange,
-      letterUploadDateRange,
-      designReportDateRange,
-      techControlsDateRange,
-      finalRaceDateRange,
-    } = parseResult.data;
-    const { id } = await updateContest(
-      contestId,
-      name,
-      [teamSize_from, teamSize_to],
-      [teamNameLength_from, teamNameLength_to],
-      applicationDateRange,
-      letterUploadDateRange,
-      designReportDateRange,
-      techControlsDateRange,
-      finalRaceDateRange
-    );
+  const result = await mutation(await inputFromForm(request), params.contestId);
+
+  if (result.success) {
     return redirect(
-      route("/contest/:contestId/settings", { contestId: String(id) })
+      route("/contest/:contestId/settings", { contestId: String(result.data) })
     );
   } else {
-    console.error(parseResult.error);
-    const { fieldErrors } = parseResult.error.flatten();
-    return json<ActionData>(fieldErrors, {
-      status: 400,
-    });
+    return json<ActionData>(
+      errorMessagesForSchema(result.inputErrors, formSchema),
+      { status: 400 }
+    );
   }
 };
 

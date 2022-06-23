@@ -14,6 +14,12 @@ import { fullNameSchema } from "~/models/user.server";
 import { changeDetails } from "~/models/user.server";
 import { requireUser, requireUserId } from "~/session.server";
 import type { Jsonify } from "~/utils/jsonify";
+import {
+  errorMessagesForSchema,
+  InputError,
+  inputFromForm,
+  makeDomainFunction,
+} from "remix-domains";
 
 type LoaderData = {
   fullName: User["fullName"];
@@ -30,26 +36,29 @@ const formSchema = z.object({
 
 type ActionData = z.inferFlattenedErrors<typeof formSchema>["fieldErrors"];
 
+const mutation = makeDomainFunction(
+  formSchema,
+  z.number()
+)(async ({ fullName }, userId) => {
+  try {
+    await changeDetails(userId, fullName);
+    return null;
+  } catch {
+    throw new InputError("Name is required", "fullName");
+  }
+});
+
 export const action: ActionFunction = async ({ request }) => {
-  const formData = await request.formData();
-  const parseResult = formSchema.safeParse(Object.fromEntries(formData));
   const userId = await requireUserId(request);
+  const result = await mutation(await inputFromForm(request), userId);
 
-  if (parseResult.success) {
-    const fullName = parseResult.data.fullName;
-
-    try {
-      await changeDetails(userId, fullName);
-      return redirect(route("/profile"));
-    } catch {
-      return json<ActionData>(
-        { fullName: ["Name is required"] },
-        { status: 400 }
-      );
-    }
+  if (result.success) {
+    return redirect(route("/profile"));
   } else {
-    const { fieldErrors } = parseResult.error.flatten();
-    return json<ActionData>(fieldErrors, { status: 400 });
+    return json<ActionData>(
+      errorMessagesForSchema(result.inputErrors, formSchema),
+      { status: 400 }
+    );
   }
 };
 

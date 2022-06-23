@@ -51,6 +51,7 @@
     "dayjs": "^1.11.2",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
+    "remix-domains": "^0.3.0",
     "routes-gen": "^0.5.0",
     "tabler-icons-react": "^1.48.1",
     "ts-node": "^10.8.1",

@@ -11,6 +11,12 @@ import { route } from "routes-gen";
 import { z } from "zod";
 import { changePassword, passwordSchema } from "~/models/user.server";
 import { requireUserId } from "~/session.server";
+import {
+  InputError,
+  errorMessagesForSchema,
+  inputFromForm,
+  makeDomainFunction,
+} from "remix-domains";
 
 export const loader: LoaderFunction = async ({ request }) => {
   await requireUserId(request);
@@ -24,27 +30,29 @@ const formSchema = z.object({
 
 type ActionData = z.inferFlattenedErrors<typeof formSchema>["fieldErrors"];
 
+const mutation = makeDomainFunction(
+  formSchema,
+  z.number()
+)(async ({ oldPassword, newPassword }, userId) => {
+  try {
+    await changePassword(userId, oldPassword, newPassword);
+    return null;
+  } catch {
+    throw new InputError("Password is wrong", "oldPassword");
+  }
+});
+
 export const action: ActionFunction = async ({ request }) => {
-  const formData = await request.formData();
-  const parseResult = formSchema.safeParse(Object.fromEntries(formData));
   const userId = await requireUserId(request);
+  const result = await mutation(await inputFromForm(request), userId);
 
-  if (parseResult.success) {
-    const oldPassword = parseResult.data.oldPassword;
-    const newPassword = parseResult.data.newPassword;
-
-    try {
-      await changePassword(userId, oldPassword, newPassword);
-      return redirect(route("/profile"));
-    } catch {
-      return json<ActionData>(
-        { oldPassword: ["Password is wrong"] },
-        { status: 400 }
-      );
-    }
+  if (result.success) {
+    return redirect(route("/profile"));
   } else {
-    const { fieldErrors } = parseResult.error.flatten();
-    return json<ActionData>(fieldErrors, { status: 400 });
+    return json<ActionData>(
+      errorMessagesForSchema(result.inputErrors, formSchema),
+      { status: 400 }
+    );
   }
 };
 

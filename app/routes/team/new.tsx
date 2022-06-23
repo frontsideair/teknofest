@@ -14,6 +14,13 @@ import { Button, Container, Group, TextInput, Title } from "@mantine/core";
 import { z } from "zod";
 import { createTeam, nameSchema } from "~/models/team.server";
 import { getContestWithApplicationsOpen } from "~/models/contest.server";
+import {
+  InputError,
+  errorMessagesForSchema,
+  inputFromForm,
+  makeDomainFunction,
+  EnvironmentError,
+} from "remix-domains";
 
 type LoaderData = {
   minTeamNameLength: number;
@@ -37,41 +44,45 @@ const formSchema = z.object({
 
 type ActionData = z.inferFlattenedErrors<typeof formSchema>["fieldErrors"];
 
-export const action: ActionFunction = async ({ request }) => {
-  const userId = await requireUserId(request);
-  const formData = await request.formData();
-  const parseResult = formSchema.safeParse(Object.fromEntries(formData));
-
-  if (parseResult.success) {
-    const name = parseResult.data.name;
-    const contest = await getContestWithApplicationsOpen();
-
-    if (contest) {
-      const { minTeamNameLength, maxTeamNameLength } = contest;
-
-      if (name.length < minTeamNameLength) {
-        return json<ActionData>({ name: ["Name too short"] }, { status: 400 });
-      } else if (name.length > maxTeamNameLength) {
-        return json<ActionData>({ name: ["Name too long"] }, { status: 400 });
-      } else {
-        try {
-          const team = await createTeam(name, userId);
-
-          return redirect(route("/team/:teamId", { teamId: String(team.id) }));
-        } catch (error) {
-          console.error(error);
-          return json<ActionData>(
-            { name: ["Name is not unique"] },
-            { status: 400 }
-          );
-        }
-      }
+const mutation = makeDomainFunction(
+  formSchema,
+  z.number()
+)(async ({ name }, userId) => {
+  const contest = await getContestWithApplicationsOpen();
+  if (contest) {
+    const { minTeamNameLength, maxTeamNameLength } = contest;
+    if (name.length < minTeamNameLength) {
+      throw new InputError("Name too short", "name");
+    } else if (name.length > maxTeamNameLength) {
+      throw new InputError("Name too long", "name");
     } else {
-      throw new Response("No contest with applications open", { status: 404 });
+      try {
+        const team = await createTeam(name, userId);
+        return team.id;
+      } catch {
+        throw new InputError("Name is not unique", "name");
+      }
     }
   } else {
-    const { fieldErrors } = parseResult.error.flatten();
-    return json<ActionData>(fieldErrors, { status: 400 });
+    throw new EnvironmentError("No contest with applications open", "userId");
+  }
+});
+
+export const action: ActionFunction = async ({ request }) => {
+  const userId = await requireUserId(request);
+  const result = await mutation(await inputFromForm(request), userId);
+
+  if (result.success) {
+    return redirect(route("/team/:teamId", { teamId: String(result.data) }));
+  } else {
+    if (result.environmentErrors.length > 0) {
+      throw new Response("No contest with applications open", { status: 404 });
+    } else {
+      return json<ActionData>(
+        errorMessagesForSchema(result.inputErrors, formSchema),
+        { status: 400 }
+      );
+    }
   }
 };
 

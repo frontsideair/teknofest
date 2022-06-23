@@ -6,6 +6,12 @@ import type {
 import { json, redirect, Response } from "@remix-run/node";
 import { Form, Link, useActionData } from "@remix-run/react";
 import * as React from "react";
+import {
+  errorMessagesForSchema,
+  InputError,
+  inputFromForm,
+  makeDomainFunction,
+} from "remix-domains";
 
 import { createUserSession, getUserId } from "~/session.server";
 
@@ -56,34 +62,31 @@ const formSchema = z.object({
 
 type ActionData = z.inferFlattenedErrors<typeof formSchema>["fieldErrors"];
 
-export const action: ActionFunction = async ({ request }) => {
-  const formData = await request.formData();
-  const parseResult = formSchema.safeParse(Object.fromEntries(formData));
-
-  if (parseResult.success) {
-    const fullName = parseResult.data.fullName;
-    const email = parseResult.data.email;
-    const password = parseResult.data.password;
-    const role = parseResult.data.role;
-
+const mutation = makeDomainFunction(formSchema)(
+  async ({ fullName, email, password, role }) => {
     const existingUser = await getUserByEmail(email);
     if (existingUser) {
-      return json<ActionData>(
-        { email: ["A user already exists with this email"] },
-        { status: 400 }
-      );
+      throw new InputError("A user with that email already exists", "email");
+    } else {
+      return await createUser(fullName, email, password, role);
     }
+  }
+);
 
-    const user = await createUser(fullName, email, password, role);
+export const action: ActionFunction = async ({ request }) => {
+  const result = await mutation(await inputFromForm(request));
 
+  if (result.success) {
     return createUserSession({
       request,
-      userId: user.id,
+      userId: result.data.id,
       remember: false,
     });
   } else {
-    const { fieldErrors } = parseResult.error.flatten();
-    return json<ActionData>(fieldErrors, { status: 400 });
+    return json<ActionData>(
+      errorMessagesForSchema(result.inputErrors, formSchema),
+      { status: 400 }
+    );
   }
 };
 

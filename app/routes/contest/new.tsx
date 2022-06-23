@@ -17,6 +17,11 @@ import { createContest, nameSchema } from "~/models/contest.server";
 import { dateRangeString, numericString } from "~/utils/zod";
 import { requireRole } from "~/session.server";
 import DateRangePicker from "~/components/DateRangePicker";
+import {
+  errorMessagesForSchema,
+  inputFromForm,
+  makeDomainFunction,
+} from "remix-domains";
 
 const formSchema = z.object({
   name: nameSchema,
@@ -33,40 +38,33 @@ const formSchema = z.object({
 
 type ActionData = z.inferFlattenedErrors<typeof formSchema>["fieldErrors"];
 
+const mutation = makeDomainFunction(formSchema)(async (data) => {
+  const contest = await createContest(
+    data.name,
+    [data.teamSize_from, data.teamSize_to],
+    [data.teamNameLength_from, data.teamNameLength_to],
+    data.applicationDateRange,
+    data.letterUploadDateRange,
+    data.designReportDateRange,
+    data.techControlsDateRange,
+    data.finalRaceDateRange
+  );
+  return contest.id;
+});
+
 export const action: ActionFunction = async ({ request }) => {
   await requireRole(request, "admin");
-  const formData = await request.formData();
-  const parseResult = formSchema.safeParse(Object.fromEntries(formData));
-  if (parseResult.success) {
-    const {
-      name,
-      teamSize_from,
-      teamSize_to,
-      teamNameLength_from,
-      teamNameLength_to,
-      applicationDateRange,
-      letterUploadDateRange,
-      designReportDateRange,
-      techControlsDateRange,
-      finalRaceDateRange,
-    } = parseResult.data;
-    const { id } = await createContest(
-      name,
-      [teamSize_from, teamSize_to],
-      [teamNameLength_from, teamNameLength_to],
-      applicationDateRange,
-      letterUploadDateRange,
-      designReportDateRange,
-      techControlsDateRange,
-      finalRaceDateRange
+  const result = await mutation(await inputFromForm(request));
+
+  if (result.success) {
+    return redirect(
+      route("/contest/:contestId", { contestId: String(result.data) })
     );
-    return redirect(route("/contest/:contestId", { contestId: String(id) }));
   } else {
-    console.error(parseResult.error);
-    const { fieldErrors } = parseResult.error.flatten();
-    return json<ActionData>(fieldErrors, {
-      status: 400,
-    });
+    return json<ActionData>(
+      errorMessagesForSchema(result.inputErrors, formSchema),
+      { status: 400 }
+    );
   }
 };
 

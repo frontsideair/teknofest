@@ -10,6 +10,13 @@ import { getTeam, nameSchema, updateTeam } from "~/models/team.server";
 import { requireRole } from "~/session.server";
 import type { Jsonify } from "~/utils/jsonify";
 import { numericString } from "~/utils/zod";
+import {
+  InputError,
+  errorMessagesForSchema,
+  inputFromForm,
+  makeDomainFunction,
+  EnvironmentError,
+} from "remix-domains";
 
 type LoaderData = {
   team: NonNullable<Awaited<ReturnType<typeof getTeam>>>;
@@ -34,27 +41,54 @@ const formSchema = z.object({
 
 type ActionData = z.inferFlattenedErrors<typeof formSchema>["fieldErrors"];
 
-export const action: ActionFunction = async ({ request, params }) => {
-  const teamId = numericString.parse(params.teamId);
-  const formData = await request.formData();
-  await requireRole(request, "advisor");
+const mutation = makeDomainFunction(
+  formSchema,
+  numericString
+)(async ({ name }, teamId) => {
+  const team = await getTeam(teamId);
+  if (team) {
+    const { minTeamNameLength, maxTeamNameLength } = team.contest;
+    if (name.length < minTeamNameLength) {
+      throw new InputError("Name too short", "name");
+    } else if (name.length > maxTeamNameLength) {
+      throw new InputError("Name too long", "name");
+    } else {
+      try {
+        await updateTeam(teamId, name);
+        return team.id;
+      } catch {
+        throw new InputError("Name is not unique", "name");
+      }
+    }
+  } else {
+    throw new EnvironmentError("No such team found", "teamId");
+  }
+});
 
-  const parseResult = formSchema.safeParse(Object.fromEntries(formData));
-  if (parseResult.success) {
-    const name = parseResult.data.name;
-    await updateTeam(teamId, name);
+export const action: ActionFunction = async ({ request, params }) => {
+  await requireRole(request, "advisor");
+  const result = await mutation(await inputFromForm(request), params.teamId);
+
+  if (result.success) {
     return redirect(
-      route("/team/:teamId/settings", { teamId: String(teamId) })
+      route("/team/:teamId/settings", { teamId: String(result.data) })
     );
   } else {
-    const { fieldErrors } = parseResult.error.flatten();
-    return json<ActionData>(fieldErrors, { status: 400 });
+    if (result.environmentErrors.length > 0) {
+      throw new Response("No such team found", { status: 404 });
+    } else {
+      return json<ActionData>(
+        errorMessagesForSchema(result.inputErrors, formSchema),
+        { status: 400 }
+      );
+    }
   }
 };
 
 export default function Settings() {
   const { team, isCurrentContest } = useLoaderData<Jsonify<LoaderData>>();
   const actionData = useActionData<ActionData>();
+  const { minTeamNameLength, maxTeamNameLength } = team.contest;
 
   return (
     <Stack>
@@ -66,7 +100,9 @@ export default function Settings() {
         >
           <TextInput
             label="Team name"
-            description="Maximum 10 characters"
+            description={`Should be between ${minTeamNameLength} and ${maxTeamNameLength} characters`}
+            minLength={minTeamNameLength}
+            maxLength={maxTeamNameLength}
             required
             name="name"
             error={actionData?.name}
